@@ -4,6 +4,23 @@ Use BERT to solve a multi-label text classification task.
 ## Architecture
 The model is simply a BERT model followed by a linear classifier, using BP-MLL function as loss function.
 
+## A ready-to-use model
+We have trained a model, you can download and use it directly. 
+- [Model](https://drive.google.com/a/berkeley.edu/file/d/1sSv7fgqYHMmUv7A43PVnkl8frltRSYkk/view?usp=sharing) (md5sum: `9c7b3c5b817d4a38045f4cd325e2783e`)
+
+After downloading, put the extracted file (`model_best.pth`) in `model/`.
+
+## Before using the model
+```sh
+# install transformers by HuggingFace
+git clone https://github.com/huggingface/transformers
+cd transformers
+python setup.py install
+
+# download scibert pretrained model
+python download_model.py
+```
+
 ## Train the model
 Simply run the command as you have downloaded the pretrained BERT.
 ```sh
@@ -21,7 +38,7 @@ cd result  # the html form result are put in result/
 ```sh
 python predict.py  # for test
 ```
-To use in a Python script, call
+To use in a Python script, use the code below
 ```python
 >>> from .predict import Prediction
 
@@ -52,7 +69,7 @@ Parameters for the loss function (here we use BP-MLL loss function), used for in
 
 ### Network
 Parameters used for initializing the neural network, used in `model.py`
-- `pretrained_model`: point to the directory containing the pretained bert model (here we use [SciBert](https://github.com/allenai/scibert) by Allen AI, need to be downloaded MANUALLY)
+- `pretrained_model`: point to the directory containing the pretained bert model (here we use [SciBert](https://github.com/allenai/scibert) by Allen AI)
 - `hidden_size`: the size of the pretrained model's hidden size (768 here)
 - `dropout_prob`: the probability for dropout layer to drop a element in the input tensor
 - `label_num`: the total number of labels
