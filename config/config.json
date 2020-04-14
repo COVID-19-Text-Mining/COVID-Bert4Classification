@@ -1,0 +1,29 @@
+{
+ "IO": {
+  "model_dir": "model/"
+ },
+ "HyperParam": {
+  "batch_size": 8,
+  "lr": 5e-05,
+  "epoch": 50,
+  "accumulation_step": 4
+ },
+ "Loss": {
+  "bias": [1, 2]
+ },
+ "NetWork": {
+  "pretrained_model": "scibert_scivocab_uncased/",
+  "hidden_size": 768,
+  "dropout_prob": 0.1,
+  "label_num": 8
+ },
+ "Dataset": {
+  "tokenizer_path": "scibert_scivocab_uncased/",
+  "dataset_path": "rsc/already_annotated.json",
+  "text_key": "text",
+  "label_key": "cats"
+ },
+ "Predict": {
+  "positive_threshold": 0.5
+ }
+}
