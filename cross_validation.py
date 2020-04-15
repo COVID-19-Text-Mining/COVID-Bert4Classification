@@ -33,6 +33,8 @@ if __name__ == "__main__":
 
     for training_set, test_set in generate_cross_validation_sets(config.Dataset.dataset_path, device):
         # get training set and test set
+        if round != 1:
+            torch.cuda.empty_cache()
         model, optimizer = load(config, load_old=False)
         model.to(device)
         if torch.cuda.device_count() > 1:

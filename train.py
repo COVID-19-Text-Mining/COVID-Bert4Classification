@@ -71,20 +71,21 @@ def test(test_set: PaperDataset, training_set: PaperDataset, model: nn.Module, c
     """
     model.eval()
     with torch.no_grad():
-        output = model(test_set.x, test_set.mask)
+        output = model(training_set.x, training_set.mask)
         hloss = hamming_loss(
             output,
             training_set.y.view_as(output),
             threshold=config.Predict.positive_threshold
         )
         logger.info(f"H_Loss (training_set): {hloss}")
+
+        output = model(test_set.x, test_set.mask)
         hloss = hamming_loss(
             output,
             test_set.y.view_as(output),
             threshold=config.Predict.positive_threshold
         )
         logger.info(f"H_Loss (test_set): {hloss}")
-        output = model(training_set.x, training_set.mask)
         return hloss
 
 

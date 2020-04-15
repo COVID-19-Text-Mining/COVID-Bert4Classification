@@ -13,10 +13,11 @@ import warnings
 
 try:
     from sklearn.model_selection import KFold
-except ImportError as e:
+except ModuleNotFoundError as e:
     warnings.warn(f"Cannot import {e.name}. "
                   f"Please install the sklearn package"
                   f" if you want to use cross validation model")
+    KFold = None
 
 
 class PaperDataset(Dataset):

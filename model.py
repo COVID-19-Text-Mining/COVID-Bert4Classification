@@ -74,8 +74,11 @@ def load(config, load_old=True, no_file_warning=False):
     path = None
     if load_old:
         path = config.IO.model_dir + "model_best.pth"
-        if not os.path.isfile(path) and no_file_warning:
-            raise FileNotFoundError(f"Cannot find {path}, please train the model before using it.")
+        if not os.path.isfile(path):
+            if no_file_warning:
+                raise FileNotFoundError(f"Cannot find {path}, please train the model before using it.")
+            path = None
+
     if path is not None:
         state_dict = torch.load(path)
         new_model.load_state_dict(state_dict["model"])
