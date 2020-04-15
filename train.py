@@ -49,8 +49,15 @@ def train(training_set: PaperDataset, test_set: PaperDataset,
                 optimizer.step()
                 optimizer.zero_grad()
                 logger.info(f"[Epoch {epoch}] loss = {loss:.8f}")
-        if epoch % 5 == 0:
-            hloss = test(test_set, model, config)
+        if epoch % 1 == 0:
+            hloss = test(test_set, training_set, model, config)
+            evaluate(
+                model,
+                test_set=test_set,
+                training_set=training_set,
+                tag=f"h_{hloss:.8f}_{datetime.strftime(datetime.now(), '%Y_%m_%d_%H_%M_%S')}",
+                hloss=hloss
+            )
             if epoch % 10 == 0:
                 backup(model, optimizer, epoch, config)
                 if hloss < min_hloss:
@@ -58,7 +65,7 @@ def train(training_set: PaperDataset, test_set: PaperDataset,
                     backup(model, optimizer, "best", config)
 
 
-def test(test_set: PaperDataset, model: nn.Module, config):
+def test(test_set: PaperDataset, training_set: PaperDataset, model: nn.Module, config):
     """
     compute the hamming loss
     """
@@ -67,15 +74,17 @@ def test(test_set: PaperDataset, model: nn.Module, config):
         output = model(test_set.x, test_set.mask)
         hloss = hamming_loss(
             output,
+            training_set.y.view_as(output),
+            threshold=config.Predict.positive_threshold
+        )
+        logger.info(f"H_Loss (training_set): {hloss}")
+        hloss = hamming_loss(
+            output,
             test_set.y.view_as(output),
             threshold=config.Predict.positive_threshold
         )
-        logger.info(f"H_Loss: {hloss}")
-        evaluate(
-            model, test_set=test_set,
-            tag=f"h_{hloss:.8f}_{datetime.strftime(datetime.now(), '%Y_%m_%d_%H_%M_%S')}",
-            hloss=hloss
-        )
+        logger.info(f"H_Loss (test_set): {hloss}")
+        output = model(training_set.x, training_set.mask)
         return hloss
 
 

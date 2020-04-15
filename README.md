@@ -11,12 +11,18 @@ We have trained a model, you can download and use it directly.
 After downloading, put the extracted file (`model_best.pth`) in `model/`.
 
 ## Before using the model
+Install packages needed
 ```sh
 # install transformers by HuggingFace
 git clone https://github.com/huggingface/transformers
 cd transformers
 python setup.py install
 
+# if you also want to use the cross validation module
+pip install sklearn
+```
+Then download the pretrained model,
+```sh
 # download scibert pretrained model
 python download_model.py
 ```
@@ -44,11 +50,11 @@ To use in a Python script, use the code below
 
 >>> text = "Some text here"
 >>> Prediction.predict(text)
-{'Treatment': Label('has_label': True, 'prob': 0.98), ...}
+{'Treatment': Label('has_label'=True, 'prob'=0.98), ...}
 
 >>> texts = ["many", "texts", "here"]
 >>> Prediction.predict(text)
-[{'Treatment': Label('has_label': True, 'prob': 0.98), ...}, ...]
+[{'Treatment': Label('has_label'=True, 'prob'=0.98), ...}, ...]
 ```
 
 ## Explanation to the parameters in `config/config.json`

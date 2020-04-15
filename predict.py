@@ -9,19 +9,15 @@ from typing import Collection, Union, NamedTuple, List, Dict
 class Prediction:
     config = load_config()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    bert_tokenizer = BertTokenizer.from_pretrained(config.Dataset.tokenizer_path)
-
-    model, _ = load(config, no_file_warning=True)
-    del _  # no need for optimizer, save memory
-
-    model.to(device)
-    model.eval()  # set the model to eval mode
-    torch.set_grad_enabled(False)  # don't record gradient
 
     label_tuple = NamedTuple("Label", [("has_label", bool), ("prob", float)])
 
+    model_status: bool = False  # False means unloaded
+    bert_tokenizer = None
+    model = None
+
     @classmethod
-    def predict(cls, text: Union[str, Collection[str]])\
+    def predict(cls, text: Union[str, Collection[str]]) \
             -> Union[Dict[str, label_tuple], List[Dict[str, label_tuple]]]:
         r"""
         predict the label of input text(s)
@@ -34,6 +30,16 @@ class Prediction:
                 List({"label_name": Label("has_label": bool, "probability": float (\in [0, 1]))}, ...)
                 Same order as input text
         """
+        if not cls.model_status:
+            cls.bert_tokenizer = BertTokenizer.from_pretrained(cls.config.Dataset.tokenizer_path)
+
+            cls.model, _ = load(cls.config, no_file_warning=True)
+
+            cls.model.to(cls.device)
+            cls.model.eval()  # set the model to eval mode
+            torch.set_grad_enabled(False)  # don't record gradient
+            cls.model_status = True
+
         if isinstance(text, str):
             return cls.predict_one(text)
         else:

@@ -6,17 +6,17 @@ import json
 import warnings
 
 # eight labels
-cats = {
-    "Treatment": 0,
-    "Prevention": 1,
-    "Mechanism": 2,
-    "Diagnosis": 3,
-    "General_Info": 4,
-    "Transmission": 5,
-    "Epidemic_Forecasting": 6,
-    "Case_Report": 7
-}
-indexes = {v: k for k, v in cats.items()}
+cats = [
+    "Treatment",
+    "Prevention",
+    "Mechanism",
+    "Diagnosis",
+    # "General_Info",
+    "Transmission",
+    "Epidemic_Forecasting",
+    "Case_Report"
+]
+indexes = {i: name for i, name in enumerate(cats)}
 
 # default configure
 default_config = \
@@ -34,13 +34,13 @@ default_config = \
             "bias": [1, 2]
         },
         "NetWork": {
-            "pretrained_model": "sci-bert/",
+            "pretrained_model": "scibert_scivocab_uncased/",
             "hidden_size": 768,
             "dropout_prob": 0.1,
-            "label_num": 8
+            "label_num": len(cats)
         },
         "Dataset": {
-            "tokenizer_path": "sci-bert/",
+            "tokenizer_path": "scibert_scivocab_uncased/",
             "dataset_path": "rsc/already_annotated.json",
             "text_key": "text",
             "label_key": "cats"
@@ -87,22 +87,24 @@ def load_config(path=r"config/config.json"):
 
 
 def generate_html(datasets, path, hloss=None):
-    ht = "<a name=top></a>"
-
-    for i, name in enumerate(datasets):
-        ht += f"<a href=\"#{name}\">{name}</a><hr />"
-    if hloss is not None:
-        ht += f"&nbsp;&nbsp;&nbsp;&nbsp;hamming loss (test set) = {hloss}<br />"
-    for i, (name, papers) in enumerate(datasets.items()):
-        ht += f"<hr /><a name={name}><h2>{name}</h2></a>"
-        for j, each in enumerate(papers):
-            ht += f"<p><strong>Text</strong>: {each['text']}</p>"
-            if each["cats_manual"]:
-                ht += f"<p><strong>Cats_Manual</strong>: {', '.join(each['cats_manual'])}</p>"
-            ht += f"<p><strong>Cats_ML</strong>: {', '.join(each['cats_ML'])}</p>"
-            ht += "<a href=\"#top\">back to the top</a><br />"
-            if j != len(papers) - 1:
-                ht += "<hr />"
-
     with open(path, "w", encoding="utf-8") as f:
-        f.write(ht)
+        json.dump(datasets, f, indent=1)
+    # ht = "<a name=top></a>"
+    #
+    # for i, name in enumerate(datasets):
+    #     ht += f"<a href=\"#{name}\">{name}</a><hr />"
+    # if hloss is not None:
+    #     ht += f"&nbsp;&nbsp;&nbsp;&nbsp;hamming loss (test set) = {hloss}<br />"
+    # for i, (name, papers) in enumerate(datasets.items()):
+    #     ht += f"<hr /><a name={name}><h2>{name}</h2></a>"
+    #     for j, each in enumerate(papers):
+    #         ht += f"<p><strong>Text</strong>: {each['text']}</p>"
+    #         if each["cats_manual"]:
+    #             ht += f"<p><strong>Cats_Manual</strong>: {', '.join(each['cats_manual'])}</p>"
+    #         ht += f"<p><strong>Cats_ML</strong>: {', '.join(each['cats_ML'])}</p>"
+    #         ht += "<a href=\"#top\">back to the top</a><br />"
+    #         if j != len(papers) - 1:
+    #             ht += "<hr />"
+    #
+    # with open(path, "w", encoding="utf-8") as f:
+    #     f.write(ht)

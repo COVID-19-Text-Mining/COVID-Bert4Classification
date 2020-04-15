@@ -37,14 +37,13 @@ def evaluate(model=None, tag="", hloss=None, **kwargs):
                 for i, label in enumerate(output > config.Predict.positive_threshold):
                     if label:
                         prediction.append(str((indexes[i], float(output[i]))))
-                target = []
-                for i, label in enumerate(y):
-                    if label:
-                        target.append(indexes[i])
+
+                target = [indexes[i] for i, label in enumerate(y) if label]
+
                 result.append({"text": text, "cats_manual": target, "cats_ML": prediction})
             results[name] = result
 
-    generate_html(results, f"result/prediction_{tag}.html", hloss)
+    generate_html(results, f"result/evaluation_{tag}.json", hloss)
 
 
 if __name__ == "__main__":

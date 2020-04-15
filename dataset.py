@@ -4,10 +4,19 @@ Load the training data
 
 from torch.utils.data import Dataset
 from transformers import BertTokenizer
+
 import torch
 import json
 from random import shuffle
 import utils
+import warnings
+
+try:
+    from sklearn.model_selection import KFold
+except ImportError as e:
+    warnings.warn(f"Cannot import {e.name}. "
+                  f"Please install the sklearn package"
+                  f" if you want to use cross validation model")
 
 
 class PaperDataset(Dataset):
@@ -25,14 +34,26 @@ class PaperDataset(Dataset):
         mask = []
 
         for paper in papers:
-            text.append(paper[self.config.Dataset.text_key])
-            ids = self.bert_tokenizer.encode(paper[self.config.Dataset.text_key],
-                                             add_special_tokens=True,
-                                             max_length=512,
-                                             pad_to_max_length=True)
-            x.append(ids)
-            mask.append([int(i > 0) for i in ids])
-            y.append([paper[self.config.Dataset.label_key][i] for i in self.cats])
+            abstract_text = paper[self.config.Dataset.text_key]
+            # make sure the order is right
+            label = [paper[self.config.Dataset.label_key][label_name] for label_name in self.cats]
+            if abstract_text.strip() and any(label):
+                ids = self.bert_tokenizer.encode_plus(
+                    abstract_text,
+                    add_special_tokens=True,
+                    max_length=512,
+                    pad_to_max_length=True,
+                    return_attention_mask=True,
+                    return_token_type_ids=False,
+                    return_overflowing_tokens=False,
+                    return_special_tokens_mask=False,
+                    return_offsets_mapping=False
+
+                )
+                x.append(ids["input_ids"])
+                mask.append(ids["attention_mask"])
+                y.append(label)
+                text.append(abstract_text)
 
         self.x = torch.tensor(x, dtype=torch.long).to(device)
         self.mask = torch.tensor(mask, dtype=torch.long).to(device)
@@ -54,6 +75,7 @@ class PaperDataset(Dataset):
 def generate_train_set(path, device, test_portion=0.1):
     with open(path, "r", encoding="utf-8") as f:
         papers = json.load(f)
+
     shuffle(papers)
 
     training_set = []
@@ -68,3 +90,18 @@ def generate_train_set(path, device, test_portion=0.1):
         return PaperDataset(training_set, device), PaperDataset(test_set, device)
     else:
         return PaperDataset(papers, device)
+
+
+def generate_cross_validation_sets(path, device, n_splits=10):
+    with open(path, "r", encoding="utf-8") as f:
+        papers = json.load(f)
+
+    kf = KFold(n_splits, shuffle=True)
+    for train_index, test_index in kf.split(papers):
+        print("TRAIN: ", train_index)
+        print("TEST: ", test_index)
+
+        training_set = PaperDataset([papers[i] for i in train_index], device)
+        test_set = PaperDataset([papers[i] for i in test_index], device)
+
+        yield training_set, test_set

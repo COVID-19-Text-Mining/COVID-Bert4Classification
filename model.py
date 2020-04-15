@@ -58,9 +58,11 @@ def backup(model: nn.Module, optimizer: nn.Module, label, config):
     )
 
 
-def load(config, no_file_warning=False):
+def load(config, load_old=True, no_file_warning=False):
     """
     load the model
+
+    if load_model is True, the script will try to load the old model "model/model_best.pth"
 
     if no_file_warning is set to True,
     it will raise a FileNotFoundError when
@@ -68,11 +70,12 @@ def load(config, no_file_warning=False):
     """
     new_model = Net(config)
     new_optimizer = Adam(new_model.parameters(), lr=config.HyperParam.lr)
-    path = config.IO.model_dir + "model_best.pth"
-    if not os.path.isfile(path):
-        if no_file_warning:
+
+    path = None
+    if load_old:
+        path = config.IO.model_dir + "model_best.pth"
+        if not os.path.isfile(path) and no_file_warning:
             raise FileNotFoundError(f"Cannot find {path}, please train the model before using it.")
-        path = None
     if path is not None:
         state_dict = torch.load(path)
         new_model.load_state_dict(state_dict["model"])
