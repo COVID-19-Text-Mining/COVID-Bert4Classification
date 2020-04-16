@@ -13,32 +13,31 @@ def insert_classified_paper(paper, collection):
 
 if __name__ == '__main__':
 
-    db_host = "dbhost"
-    db = "db"
-    user = "user_name"
-    password = "password"
-
     client = pymongo.MongoClient(
-        db_host,
-        username=user,
-
-        password=password,
-        authSource=db
+        os.getenv("COVID_HOST"),
+        username=os.getenv("COVID_USER"),
+        password=os.getenv("COVID_PASS"),
+        authSource=os.getenv("COVID_DB")
     )
-    db = client[db]
-    input_collection_name = "input_collection_name"
-    input_collection = db[input_collection_name]
-    output_collection_name = "output_collection_name"
-    output_collection = db[output_collection_name]
-    output_collection.create_index([('doi', HASHED)])
-    cursor = input_collection.find({})
-    for paper in cursor:
+    db = client[os.getenv("COVID_DB")]
+
+    collection = db["entries"]
+
+    # TODO: change this target collection
+    target_collection = collection
+
+    for paper in collection.find():
         exists = output_collection.find_one({'doi': paper["doi"]}) is not None
-        if exists:
+
+        abstract = paper["abstract"].strip()
+
+        if exists:  # skip when paper have no abstract OR already in the database
             continue
+
         paper_info = {
             "doi": paper["doi"],
             "abstract": paper["abstract"],
-            "category": Prediction.predict(paper["abstract"])
+            "categories": Prediction.predict(paper["abstract"])  # NamedTuple
         }
+
         insert_classified_paper(paper_info, output_collection)

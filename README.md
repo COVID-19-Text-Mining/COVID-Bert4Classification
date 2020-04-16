@@ -1,48 +1,32 @@
 # COVID-Bert4Classification
-Use BERT to solve a multi-label text classification task.
+Use BERT to solve a multi-label text classification problem.
 
 ## Architecture
 The model is simply a BERT model followed by a linear classifier, using BP-MLL function as loss function.
 
-## A ready-to-use model
-We have trained a model, you can download and use it directly. 
-- [Model](https://drive.google.com/a/berkeley.edu/file/d/1sSv7fgqYHMmUv7A43PVnkl8frltRSYkk/view?usp=sharing) (md5sum: `9c7b3c5b817d4a38045f4cd325e2783e`)
-
-After downloading, put the extracted file (`model_best.pth`) in `model/`.
-
 ## Before using the model
-Install packages needed
+Set up the environment
 ```sh
-# install transformers by HuggingFace
-git clone https://github.com/huggingface/transformers
-cd transformers
-python setup.py install
-
-# if you also want to use the cross validation module
-pip install sklearn
-```
-Then download the pretrained model,
-```sh
-# download scibert pretrained model
-python download_model.py
+# This script will automatically download all the packages and models needed.
+python set_env.py
 ```
 
 ## Train the model
 Simply run the command as you have downloaded the pretrained BERT.
 ```sh
-python train.py &
+make
 tail -f logger.log  # read the log file
 ```
 
 ## Evaluate the model
 ```sh
-python evaluate.py
+make evaluate
 cd result  # the html form result are put in result/
 ```
 
 ## Predict labels of the texts
 ```sh
-python predict.py  # for test
+make predict  # just for test
 ```
 To use in a Python script, use the code below
 ```python
@@ -55,6 +39,16 @@ To use in a Python script, use the code below
 >>> texts = ["many", "texts", "here"]
 >>> Prediction.predict(text)
 [{'Treatment': Label('has_label'=True, 'prob'=0.98), ...}, ...]
+```
+
+## Add entries to MongDB
+```sh
+python insert_to_db.py
+```
+
+## Clear models in `model` and results in `result`
+```sh
+make clean
 ```
 
 ## Explanation to the parameters in `config/config.json`

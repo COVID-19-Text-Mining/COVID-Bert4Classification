@@ -3,7 +3,6 @@
 
 train: train.py
 	python train.py &
-	tail -f logger.log
 
 evaluate: evaluate.py
 	python evaluate.py
@@ -26,6 +25,16 @@ scibert_scivocab_uncased.tar:
 	curl -o scibert_scivocab_uncased.tar \
 	https://s3-us-west-2.amazonaws.com/ai2-s2-research/scibert/\
 	huggingface_pytorch/scibert_scivocab_uncased.tar
+
+model/model_best.pth: model
+	curl -o model/model.tar.gz \
+	https://yuxingfei.com/src/model.tar.gz
+	cd model && \
+	dd if=model.tar.gz | openssl enc -d -pbkdf2 -pass pass:ppR16zzPvLvNolT7 | tar -zxvf -
+	rm model/model.tar.gz
+
+model:
+	mkdir model
 
 clean:
 	rm model/* result/*

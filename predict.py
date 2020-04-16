@@ -3,7 +3,7 @@ from utils import load_config, indexes
 
 import torch
 from transformers import BertTokenizer
-from typing import Collection, Union, NamedTuple, List, Dict
+from typing import Iterable, Union, NamedTuple, List, Dict
 
 
 class Prediction:
@@ -15,6 +15,8 @@ class Prediction:
     model_status: bool = False  # False means unloaded
     bert_tokenizer = None
     model = None
+
+    empty_string_result = {cat_name: label_tuple(False, 0.0) for cat_name in indexes.values()}  # no cats
 
     @classmethod
     def predict(cls, text: Union[str, Collection[str]]) \
@@ -47,13 +49,17 @@ class Prediction:
 
     @classmethod
     def predict_one(cls, text: str) -> Dict[str, label_tuple]:
-        return cls.predict_many([text])[0]
+        if not text.strip():
+            return cls.predict_many([text])[0]
+        return cls.empty_string_result.copy()
 
     @classmethod
     def predict_many(cls, texts: Collection[str]) -> List[Dict[str, label_tuple]]:
+        texts = [text.strip() for text in texts]
+        empty_string_masks = [not bool(text) for text in texts]
         ids = torch.tensor([
             cls.bert_tokenizer.encode(
-                text.strip(),
+                text,
                 add_special_tokens=True,
                 max_length=512,
                 pad_to_max_length=True
@@ -67,10 +73,17 @@ class Prediction:
         )
 
         predictions = []
-        for output in outputs:
+        for output, is_empty_string in zip(outputs, empty_string_masks):
+
+            if is_empty_string:  # deal with empty string
+                predictions.append(cls.empty_string_result.copy())
+                continue
+
             prediction = dict()
+
             for i, label in enumerate(output > cls.config.Predict.positive_threshold):
                 prediction[indexes[i]] = cls.label_tuple(bool(label), float(output[i]))
+
             predictions.append(prediction)
 
         return predictions
