@@ -15,7 +15,6 @@ class Prediction:
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     empty_string_result = {cat_name: label_tuple(False, 0.0) for cat_name in indexes.values()}  # no cats
-    print(empty_string_result)
 
     model_status: bool = False  # False means unloaded
     bert_tokenizer = None
