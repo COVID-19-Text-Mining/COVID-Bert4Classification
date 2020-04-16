@@ -3,6 +3,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+model/
+*.pth
+
+scibert_scivocab_uncased/
+
 .idea/
 
 # C extensions
