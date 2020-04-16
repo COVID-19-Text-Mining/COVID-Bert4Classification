@@ -14,7 +14,7 @@ def evaluate(model=None, tag="", hloss=None, **kwargs):
     config = load_config()
 
     if model is None:
-        model, _ = load(config, no_file_warning=True)
+        model, _ = load(config, device, no_file_warning=True)
         del _  # no need for optimizer
         model.to(device)
     if not kwargs:
@@ -43,7 +43,7 @@ def evaluate(model=None, tag="", hloss=None, **kwargs):
                 result.append({"text": text, "cats_manual": target, "cats_ML": prediction})
             results[name] = result
 
-    generate_html(results, f"result/evaluation_{tag}.json", hloss)
+    generate_html(results, f"result/evaluation_{tag}.html", hloss)
 
 
 if __name__ == "__main__":

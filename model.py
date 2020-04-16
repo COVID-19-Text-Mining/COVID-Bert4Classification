@@ -58,7 +58,7 @@ def backup(model: nn.Module, optimizer: nn.Module, label, config):
     )
 
 
-def load(config, load_old=True, no_file_warning=False):
+def load(config, device, load_old=True, no_file_warning=False):
     """
     load the model
 
@@ -80,7 +80,7 @@ def load(config, load_old=True, no_file_warning=False):
             path = None
 
     if path is not None:
-        state_dict = torch.load(path)
+        state_dict = torch.load(path, map_location=device)
         new_model.load_state_dict(state_dict["model"])
         new_optimizer.load_state_dict(state_dict["optimizer"])
     return new_model, new_optimizer

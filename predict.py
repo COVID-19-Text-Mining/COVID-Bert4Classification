@@ -33,7 +33,7 @@ class Prediction:
         if not cls.model_status:
             cls.bert_tokenizer = BertTokenizer.from_pretrained(cls.config.Dataset.tokenizer_path)
 
-            cls.model, _ = load(cls.config, no_file_warning=True)
+            cls.model, _ = load(cls.config, cls.device, no_file_warning=True)
 
             cls.model.to(cls.device)
             cls.model.eval()  # set the model to eval mode

@@ -58,11 +58,9 @@ def train(training_set: PaperDataset, test_set: PaperDataset,
                 tag=f"h_{hloss:.8f}_{datetime.strftime(datetime.now(), '%Y_%m_%d_%H_%M_%S')}",
                 hloss=hloss
             )
-            if epoch % 10 == 0:
-                backup(model, optimizer, epoch, config)
-                if hloss < min_hloss:
-                    min_hloss = hloss
-                    backup(model, optimizer, "best", config)
+            if hloss < min_hloss:
+                min_hloss = hloss
+                backup(model, optimizer, "best", config)
 
 
 def test(test_set: PaperDataset, training_set: PaperDataset, model: nn.Module, config):
@@ -72,28 +70,28 @@ def test(test_set: PaperDataset, training_set: PaperDataset, model: nn.Module, c
     model.eval()
     with torch.no_grad():
         output = model(training_set.x, training_set.mask)
-        hloss = hamming_loss(
+        hloss_training = hamming_loss(
             output,
             training_set.y.view_as(output),
             threshold=config.Predict.positive_threshold
         )
-        logger.info(f"H_Loss (training_set): {hloss}")
+        logger.info(f"H_Loss (training_set): {hloss_training}")
 
         output = model(test_set.x, test_set.mask)
-        hloss = hamming_loss(
+        hloss_test = hamming_loss(
             output,
             test_set.y.view_as(output),
             threshold=config.Predict.positive_threshold
         )
-        logger.info(f"H_Loss (test_set): {hloss}")
-        return hloss
+        logger.info(f"H_Loss (test_set): {hloss_test}")
+        return hloss_test
 
 
 if __name__ == "__main__":
 
     config = load_config()  # get the config file, type: utils.ConfigDict
 
-    model, optimizer = load(config)
+    model, optimizer = load(config, device)
     model.to(device)
 
     if torch.cuda.device_count() > 1:

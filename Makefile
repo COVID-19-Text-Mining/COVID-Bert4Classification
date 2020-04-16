@@ -1,6 +1,16 @@
 .PHONY : install
 .PHONY : clean
 
+train: train.py
+	python train.py &
+	tail -f logger.log
+
+evaluate: evaluate.py
+	python evaluate.py
+
+predict: predict.py
+	python predict.py
+
 install: transformers
 	cd transformers && python setup.py install
 	rm -r transformers/
