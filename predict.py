@@ -3,20 +3,23 @@ from utils import load_config, indexes
 
 import torch
 from transformers import BertTokenizer
-from typing import Iterable, Union, NamedTuple, List, Dict
+from typing import Collection, Union, NamedTuple, List, Dict
+
+__all__ = ["label_tuple", "Prediction"]
+
+label_tuple = NamedTuple("Label", [("has_label", bool), ("prob", float)])
 
 
 class Prediction:
     config = load_config()
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    label_tuple = NamedTuple("Label", [("has_label", bool), ("prob", float)])
+    empty_string_result = {cat_name: label_tuple(False, 0.0) for cat_name in indexes.values()}  # no cats
+    print(empty_string_result)
 
     model_status: bool = False  # False means unloaded
     bert_tokenizer = None
     model = None
-
-    empty_string_result = {cat_name: label_tuple(False, 0.0) for cat_name in indexes.values()}  # no cats
 
     @classmethod
     def predict(cls, text: Union[str, Collection[str]]) \
