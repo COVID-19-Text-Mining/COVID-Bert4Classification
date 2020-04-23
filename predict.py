@@ -22,7 +22,7 @@ class Prediction:
 
     @classmethod
     def predict(cls, text: Union[str, Collection[str]]) \
-            -> Union[Dict[str, label_tuple], List[Dict[str, label_tuple]]]:
+            -> Union[Dict[str, tuple], List[Dict[str, tuple]]]:
         r"""
         predict the label of input text(s)
 
@@ -50,13 +50,13 @@ class Prediction:
             return cls.predict_many(text)
 
     @classmethod
-    def predict_one(cls, text: str) -> Dict[str, label_tuple]:
+    def predict_one(cls, text: str) -> Dict[str, tuple]:
         if text.strip():
             return cls.predict_many([text])[0]
         return cls.empty_string_result.copy()
 
     @classmethod
-    def predict_many(cls, texts: Collection[str]) -> List[Dict[str, label_tuple]]:
+    def predict_many(cls, texts: Collection[str]) -> List[Dict[str, tuple]]:
         texts = [text.strip() for text in texts]
         empty_string_masks = [not bool(text) for text in texts]
         ids = torch.tensor([
@@ -84,7 +84,7 @@ class Prediction:
             prediction = dict()
 
             for i, label in enumerate(output > cls.config.Predict.positive_threshold):
-                prediction[indexes[i]] = label_tuple(bool(label), float(output[i]))
+                prediction[indexes[i]] = tuple(label_tuple(bool(label), float(output[i])))
 
             predictions.append(prediction)
 

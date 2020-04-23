@@ -16,11 +16,11 @@ if find_spec("transformers") is None:
     subprocess.run(["make", "install"], check=True)
 
 if not os.path.isdir(pretrained_model):
-    warnings.warn("Not scibert pretrained model found, download and install it automatically")
+    warnings.warn("Not scibert pretrained model found, download it automatically")
     subprocess.run(["make", "scibert_scivocab_uncased"], check=True)
 
 if not os.path.isfile(model):
-    warnings.warn("Not scibert pretrained model found, download and install it automatically")
+    warnings.warn("Not model found, download it automatically")
     subprocess.run(["make", "model/model_best.pth"], check=True)
 
 print("Done!")

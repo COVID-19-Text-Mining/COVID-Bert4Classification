@@ -1,14 +1,6 @@
 import pymongo
-import datetime
-
-
-def insert_classified_paper(paper, collection):
-    paper['Last_Updated'] = datetime.datetime.now()
-    collection.update(
-        {'doi': paper['doi']},
-        paper,
-        upsert=True
-    )
+from predict import Prediction
+import os
 
 
 if __name__ == '__main__':
@@ -22,22 +14,22 @@ if __name__ == '__main__':
     db = client[os.getenv("COVID_DB")]
 
     collection = db["entries"]
+    output_collection = db["entries_categories_ml"]
 
-    # TODO: change this target collection
-    target_collection = collection
+    for paper in collection.find({}, projection=["doi", "abstract"]):
+        _id = paper["_id"]
 
-    for paper in collection.find():
-        exists = output_collection.find_one({'doi': paper["doi"]}) is not None
+        if output_collection.find_one({"_id": _id}) is not None:
+            continue
 
         abstract = paper["abstract"].strip()
 
-        if exists:  # skip when paper have no abstract OR already in the database
-            continue
+        categories = Prediction.predict(abstract)
 
-        paper_info = {
-            "doi": paper["doi"],
-            "abstract": paper["abstract"],
-            "categories": Prediction.predict(paper["abstract"])  # NamedTuple
-        }
-
-        insert_classified_paper(paper_info, output_collection)
+        output_collection.insert_one(
+            {
+                "_id": _id,
+                "doi": paper["doi"],
+                "categories": categories
+            }
+        )
