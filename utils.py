@@ -6,16 +6,12 @@ import json
 import warnings
 
 # eight labels
-cats = [
-    "Treatment",
-    "Prevention",
-    "Mechanism",
-    "Diagnosis",
-    # "General_Info",
-    "Transmission",
-    "Epidemic_Forecasting",
-    "Case_Report"
-]
+cats = ['Biomedical Sciences',
+ 'Public Health',
+ 'Physical Sciences',
+ 'Humanities/Social Sciences',
+ 'Medical Sciences']
+
 indexes = {i: name for i, name in enumerate(cats)}
 
 # default configure
