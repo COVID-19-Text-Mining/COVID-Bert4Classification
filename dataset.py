@@ -21,10 +21,9 @@ except ModuleNotFoundError as e:
 
 
 class PaperDataset(Dataset):
+    config = utils.CONFIG
     cats = utils.cats
     indexes = utils.indexes
-
-    config = utils.load_config()
 
     bert_tokenizer = BertTokenizer.from_pretrained(config.Dataset.tokenizer_path)
 

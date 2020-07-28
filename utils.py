@@ -5,19 +5,6 @@ collections of some useful functions and constants
 import json
 import warnings
 
-# eight labels
-cats = [
-    "Treatment",
-    "Prevention",
-    "Mechanism",
-    "Diagnosis",
-    # "General_Info",
-    "Transmission",
-    "Epidemic_Forecasting",
-    "Case_Report"
-]
-indexes = {i: name for i, name in enumerate(cats)}
-
 # default configure
 default_config = \
     {
@@ -26,27 +13,34 @@ default_config = \
         },
         "HyperParam": {
             "batch_size": 8,
-            "lr": 5e-05,
-            "epoch": 50,
+            "lr": 1e-04,
+            "epoch": 8,
             "accumulation_step": 4
         },
         "Loss": {
             "bias": [1, 2]
         },
         "NetWork": {
-            "pretrained_model": "scibert_scivocab_uncased/",
-            "hidden_size": 768,
-            "dropout_prob": 0.1,
-            "label_num": len(cats)
+            "pretrained_model": "scibert_scivocab_uncased",
+            "dropout_prob": 0.5,
         },
         "Dataset": {
-            "tokenizer_path": "scibert_scivocab_uncased/",
+            "tokenizer_path": "scibert_scivocab_uncased",
             "dataset_path": "rsc/already_annotated.json",
             "text_key": "text",
-            "label_key": "cats"
+            "label_key": "cats",
+            "cats": [
+                "Treatment",
+                "Prevention",
+                "Mechanism",
+                "Diagnosis",
+                "Transmission",
+                "Epidemic_Forecasting",
+                "Case_Report"
+            ]
         },
         "Predict": {
-            "positive_threshold": 0.8
+            "positive_threshold": 0.5
         }
     }
 
@@ -106,3 +100,8 @@ def generate_html(datasets, path, hloss=None):
 
     with open(path, "w", encoding="utf-8") as f:
         f.write(ht)
+
+
+CONFIG = load_config()
+cats = CONFIG.Dataset.cats
+indexes = {i: name for i, name in enumerate(cats)}

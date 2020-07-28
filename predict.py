@@ -1,5 +1,5 @@
 from model import load
-from utils import load_config, indexes
+from utils import CONFIG, indexes
 
 import torch
 from transformers import BertTokenizer
@@ -11,7 +11,7 @@ label_tuple = NamedTuple("Label", [("has_label", bool), ("prob", float)])
 
 
 class Prediction:
-    config = load_config()
+    config = CONFIG
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     empty_string_result = {cat_name: label_tuple(False, 0.0) for cat_name in indexes.values()}  # no cats

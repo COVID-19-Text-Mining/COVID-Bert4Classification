@@ -5,7 +5,7 @@ Train the model with cross validation
 import torch
 import torch.nn as nn
 
-from utils import load_config
+from utils import CONFIG
 from bp_mll import BPMLLLoss
 from dataset import generate_cross_validation_sets
 from model import load
@@ -26,7 +26,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 if __name__ == "__main__":
 
-    config = load_config()  # get the config file, type: utils.ConfigDict
+    config = CONFIG  # get the config file, type: utils.ConfigDict
     round = 1
     loss_ftc = BPMLLLoss(config.Loss.bias)  # use BP-MLL as loss function
     loss_ftc.to(device)

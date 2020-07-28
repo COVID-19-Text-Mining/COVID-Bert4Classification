@@ -4,14 +4,14 @@ Evaluate the model
 
 import torch
 from model import load
-from utils import load_config, generate_html, indexes
+from utils import CONFIG, generate_html, indexes
 from dataset import generate_train_set
 
 
 def evaluate(model=None, tag="", hloss=None, **kwargs):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    config = load_config()
+    config = CONFIG
 
     if model is None:
         model, _ = load(config, device, no_file_warning=True)

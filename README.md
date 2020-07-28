@@ -30,7 +30,7 @@ make predict  # just for test
 ```
 To use in a Python script, use the code below
 ```python
->>> from .predict import Prediction
+>>> from predict import Prediction
 
 >>> text = "Some text here"
 >>> Prediction.predict(text)
@@ -70,9 +70,7 @@ Parameters for the loss function (here we use BP-MLL loss function), used for in
 ### Network
 Parameters used for initializing the neural network, used in `model.py`
 - `pretrained_model`: point to the directory containing the pretained bert model (here we use [SciBert](https://github.com/allenai/scibert) by Allen AI)
-- `hidden_size`: the size of the pretrained model's hidden size (768 here)
 - `dropout_prob`: the probability for dropout layer to drop a element in the input tensor
-- `label_num`: the total number of labels
 
 ### Dataset
 Used in `dataset.py` for loading the dataset from file
@@ -80,6 +78,7 @@ Used in `dataset.py` for loading the dataset from file
 - `dataset_path`: point to the `json` file where annotated data is stored
 - `text_key`: key of the text for each entry
 - `label_key`: key of the labels for each entry
+- `cats`: list of name of each category
 
 ### Predict
 Used for evaluation and prediction

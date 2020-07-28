@@ -2,26 +2,29 @@
 Model
 """
 
-from transformers import BertModel
+from transformers import BertModel, BertPreTrainedModel, AdamW
 import torch
 import torch.nn as nn
 
-from torch.optim import Adam
 import os.path
+from collections import OrderedDict
 
 
-class Net(nn.Module):
+class Net(BertPreTrainedModel):
     """
     BERT followed by a linear classifier
     """
-    def __init__(self, config):
-        super(Net, self).__init__()
-        self.config = config
-        self.bert = BertModel.from_pretrained(self.config.NetWork.pretrained_model)
-        self.dropout = nn.Dropout(config.NetWork.dropout_prob)
+    def __init__(self, config, project_config):
+        super(Net, self).__init__(config)
+        self.bert = BertModel(config)
+
+        self.dropout = nn.Dropout(
+            project_config.NetWork.dropout_prob)
+
         self.classifier = nn.Linear(
-            config.NetWork.hidden_size, config.NetWork.label_num
+            config.hidden_size, len(project_config.Dataset.cats)
         )
+        self.init_weights()
 
     def forward(
         self,
@@ -52,8 +55,14 @@ def backup(model: nn.Module, optimizer: nn.Module, label, config):
     """
     save the model
     """
+    model_state = model.state_dict()
+    new_model_state = OrderedDict()
+    for k, v in model_state.items():
+        namekey = k.lstrip("module.")  # remove `module.`
+        new_model_state[namekey] = v
+
     torch.save(
-        {"model": model.state_dict(), "optimizer": optimizer.state_dict()},
+        {"model": new_model_state, "optimizer": optimizer.state_dict()},
         f"{config.IO.model_dir}model_{label}.pth"
     )
 
@@ -68,9 +77,6 @@ def load(config, device, load_old=True, no_file_warning=False):
     it will raise a FileNotFoundError when
      no model found in the target dir
     """
-    new_model = Net(config)
-    new_optimizer = Adam(new_model.parameters(), lr=config.HyperParam.lr)
-
     path = None
     if load_old:
         path = config.IO.model_dir + "model_best.pth"
@@ -81,6 +87,20 @@ def load(config, device, load_old=True, no_file_warning=False):
 
     if path is not None:
         state_dict = torch.load(path, map_location=device)
-        new_model.load_state_dict(state_dict["model"])
-        new_optimizer.load_state_dict(state_dict["optimizer"])
+        new_model = Net.from_pretrained(
+            config.NetWork.pretrained_model,
+            state_dict=state_dict["model"],
+            project_config=config
+        )
+        new_optimizer = AdamW(new_model.parameters(), lr=config.HyperParam.lr)
+        new_optimizer.load_state_dict(
+            state_dict["optimizer"]
+        )
+    else:
+        new_model = Net.from_pretrained(
+            config.NetWork.pretrained_model,
+            project_config=config
+        )
+        new_optimizer = AdamW(new_model.parameters(), lr=config.HyperParam.lr)
+
     return new_model, new_optimizer

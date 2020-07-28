@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 from torch.utils.data import DataLoader
-from utils import load_config
+from utils import CONFIG
 from bp_mll import BPMLLLoss, hamming_loss
 from dataset import PaperDataset, generate_train_set
 from model import load, backup
@@ -89,7 +89,7 @@ def test(test_set: PaperDataset, training_set: PaperDataset, model: nn.Module, c
 
 if __name__ == "__main__":
 
-    config = load_config()  # get the config file, type: utils.ConfigDict
+    config = CONFIG  # get the config file, type: utils.ConfigDict
 
     model, optimizer = load(config, device)
     model.to(device)
