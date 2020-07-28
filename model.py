@@ -16,7 +16,11 @@ class Net(BertPreTrainedModel):
     """
     def __init__(self, config, project_config):
         super(Net, self).__init__(config)
+
         self.bert = BertModel(config)
+        if project_config.NetWork.fix_pretrained:
+            for p in self.bert.parameters():
+                p.requires_grad = False
 
         self.dropout = nn.Dropout(
             project_config.NetWork.dropout_prob)

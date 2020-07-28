@@ -13,7 +13,8 @@
  },
  "NetWork": {
   "pretrained_model": "scibert_scivocab_uncased",
-  "dropout_prob": 0.5
+  "dropout_prob": 0.5,
+  "fix_pretrained": true
  },
  "Dataset": {
   "tokenizer_path": "scibert_scivocab_uncased",

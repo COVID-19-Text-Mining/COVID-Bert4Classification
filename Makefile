@@ -12,7 +12,6 @@ predict: predict.py
 
 install: transformers
 	cd transformers && python setup.py install
-	rm -r transformers/
 
 transformers:
 	git clone https://github.com/huggingface/transformers
