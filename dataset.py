@@ -41,6 +41,7 @@ class PaperDataset(Dataset):
                 ids = self.bert_tokenizer.encode_plus(
                     abstract_text,
                     add_special_tokens=True,
+                    truncation=True,
                     max_length=512,
                     pad_to_max_length=True,
                     return_attention_mask=True,
@@ -48,7 +49,6 @@ class PaperDataset(Dataset):
                     return_overflowing_tokens=False,
                     return_special_tokens_mask=False,
                     return_offsets_mapping=False
-
                 )
                 x.append(ids["input_ids"])
                 mask.append(ids["attention_mask"])
