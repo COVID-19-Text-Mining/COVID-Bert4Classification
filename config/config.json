@@ -3,10 +3,10 @@
   "model_dir": "model/"
  },
  "HyperParam": {
-  "batch_size": 8,
-  "lr": 1e-04,
+  "batch_size": 32,
+  "lr": 5e-05,
   "epoch": 8,
-  "accumulation_step": 4
+  "accumulation_step": 1
  },
  "Loss": {
   "bias": [1, 2]

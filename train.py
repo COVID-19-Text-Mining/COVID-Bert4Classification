@@ -66,23 +66,33 @@ def test(test_set: PaperDataset, training_set: PaperDataset, model: nn.Module, c
     compute the hamming loss
     """
     model.eval()
+
     with torch.no_grad():
-        output = model(training_set.x, training_set.mask)
-        hloss_training = hamming_loss(
-            output,
-            training_set.y.view_as(output),
-            threshold=config.Predict.positive_threshold
-        )
+        data = DataLoader(training_set, batch_size=config.HyperParam.batch_size, shuffle=True)
+        hloss_training = 0.
+        for seq, mask, target, _ in data:
+            output = model(seq, mask)
+            hloss_training += hamming_loss(
+                output,
+                target.view_as(output),
+                threshold=config.Predict.positive_threshold
+            ) * seq.shape[0]
+        hloss_training /= len(training_set)
         logger.info(f"H_Loss (training_set): {hloss_training}")
 
-        output = model(test_set.x, test_set.mask)
-        hloss_test = hamming_loss(
-            output,
-            test_set.y.view_as(output),
-            threshold=config.Predict.positive_threshold
-        )
-        logger.info(f"H_Loss (test_set): {hloss_test}")
-        return hloss_test
+    with torch.no_grad():
+        data = DataLoader(test_set, batch_size=config.HyperParam.batch_size, shuffle=True)
+        hloss_test = 0.
+        for seq, mask, target, _ in data:
+            output = model(seq, mask)
+            hloss_test += hamming_loss(
+                output,
+                target.view_as(output),
+                threshold=config.Predict.positive_threshold
+            ) * seq.shape[0]
+        hloss_test /= len(test_set)
+        logger.info(f"H_Loss (test_set): {hloss_training}")
+    return hloss_test
 
 
 if __name__ == "__main__":
