@@ -55,7 +55,7 @@ class PaperDataset(Dataset):
                 text.append(abstract_text)
 
         self.x = torch.tensor(x, dtype=torch.long).to(device)
-        self.mask = torch.tensor(mask, dtype=torch.long).to(device)
+        self.mask = torch.tensor(mask, dtype=torch.float).to(device)
         self.y = torch.tensor(y, dtype=torch.long).to(device)
         self.text = text
         assert self.x.size()[0] == self.mask.size()[0] == self.y.size()[0] == len(self.text)

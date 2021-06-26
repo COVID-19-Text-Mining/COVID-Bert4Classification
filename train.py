@@ -90,17 +90,13 @@ if __name__ == "__main__":
     config = CONFIG  # get the config file, type: utils.ConfigDict
 
     model, optimizer = load(config, device)
-    model.to(device)
-
-    if torch.cuda.device_count() > 1:
-        logger.info(f"Use {torch.cuda.device_count()} GPUs.")
-        model = nn.DataParallel(model)
+    model = model.to(device)
 
     training_set, test_set = \
         generate_train_set(config.Dataset.training_set, device)  # get training set and test set
 
     loss_ftc = BPMLLLoss(config.Loss.bias)  # use BP-MLL as loss function
-    loss_ftc.to(device)
+    loss_ftc = loss_ftc.to(device)
 
     train(
         training_set=training_set,
