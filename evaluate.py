@@ -8,7 +8,7 @@ from utils import CONFIG, generate_html, indexes
 from dataset import generate_train_set
 
 
-def evaluate(model=None, tag="", hloss=None, **kwargs):
+def evaluate(model=None, tag="", hloss=None):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     config = CONFIG
@@ -17,10 +17,8 @@ def evaluate(model=None, tag="", hloss=None, **kwargs):
         model, _ = load(config, device, no_file_warning=True)
         del _  # no need for optimizer
         model.to(device)
-    if not kwargs:
-        papers = {"Papers": generate_train_set(config.Dataset.dataset_path, device, test_portion=-1)}
-    else:
-        papers = kwargs
+
+    papers = {"Papers": generate_train_set(config.Dataset.test_set, device, eval_portion=-1)}
 
     model.eval()
     with torch.no_grad():

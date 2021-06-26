@@ -3,7 +3,7 @@ Load the training data
 """
 
 from torch.utils.data import Dataset
-from transformers import BertTokenizer
+from transformers import RobertaTokenizer
 
 import torch
 import json
@@ -25,7 +25,7 @@ class PaperDataset(Dataset):
     cats = utils.cats
     indexes = utils.indexes
 
-    bert_tokenizer = BertTokenizer.from_pretrained(config.Dataset.tokenizer_path)
+    roberta_tokenizer = RobertaTokenizer.from_pretrained(config.Dataset.tokenizer_path)
 
     def __init__(self, papers, device):
         x = []
@@ -38,17 +38,16 @@ class PaperDataset(Dataset):
             # make sure the order is right
             label = [paper[self.config.Dataset.label_key][label_name] for label_name in self.cats]
             if abstract_text.strip() and any(label):
-                ids = self.bert_tokenizer.encode_plus(
+                ids = self.roberta_tokenizer(
                     abstract_text,
                     add_special_tokens=True,
-                    truncation=True,
-                    max_length=512,
-                    pad_to_max_length=True,
+                    padding="max_length",
+                    truncation="longest_first",
                     return_attention_mask=True,
                     return_token_type_ids=False,
                     return_overflowing_tokens=False,
                     return_special_tokens_mask=False,
-                    return_offsets_mapping=False
+                    return_offsets_mapping=False,
                 )
                 x.append(ids["input_ids"])
                 mask.append(ids["attention_mask"])
@@ -72,7 +71,7 @@ class PaperDataset(Dataset):
         return len(self.text)
 
 
-def generate_train_set(path, device, test_portion=0.1):
+def generate_train_set(path, device, eval_portion=0.25):
     with open(path, "r", encoding="utf-8") as f:
         papers = json.load(f)
 
@@ -80,10 +79,10 @@ def generate_train_set(path, device, test_portion=0.1):
 
     training_set = []
     test_set = []
-    if 0 < test_portion <= 1:
-        test_portion = int(1 / test_portion)
+    if 0 < eval_portion <= 1:
+        eval_portion = int(1 / eval_portion)
         for i, paper in enumerate(papers):
-            if i % test_portion:
+            if i % eval_portion:
                 training_set.append(paper)
             else:
                 test_set.append(paper)

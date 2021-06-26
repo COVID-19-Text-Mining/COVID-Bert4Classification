@@ -2,7 +2,7 @@
 Model
 """
 
-from transformers import BertModel, BertPreTrainedModel, AdamW
+from transformers import RobertaModel, RobertaPreTrainedModel, AdamW
 import torch
 import torch.nn as nn
 
@@ -10,25 +10,23 @@ import os.path
 from collections import OrderedDict
 
 
-class Net(BertPreTrainedModel):
+class RobertaMultiLabelModel(RobertaPreTrainedModel):
     """
     BERT followed by a linear classifier
     """
     def __init__(self, config, project_config):
-        super(Net, self).__init__(config)
+        super(RobertaMultiLabelModel, self).__init__(config)
 
-        self.bert = BertModel(config)
+        self.roberta = RobertaModel(config)
         if project_config.NetWork.fix_pretrained:
-            for p in self.bert.parameters():
+            for p in self.roberta.parameters():
                 p.requires_grad = False
-
         self.dropout = nn.Dropout(
-            project_config.NetWork.dropout_prob)
-
+            project_config.NetWork.dropout_prob
+        )
         self.classifier = nn.Linear(
             config.hidden_size, len(project_config.Dataset.cats)
         )
-        self.init_weights()
 
     def forward(
         self,
@@ -39,7 +37,7 @@ class Net(BertPreTrainedModel):
         head_mask=None,
         inputs_embeds=None,
     ):
-        output = self.bert(
+        output = self.roberta(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
@@ -91,7 +89,7 @@ def load(config, device, load_old=True, no_file_warning=False):
 
     if path is not None:
         state_dict = torch.load(path, map_location=device)
-        new_model = Net.from_pretrained(
+        new_model = RobertaMultiLabelModel.from_pretrained(
             config.NetWork.pretrained_model,
             state_dict=state_dict["model"],
             project_config=config
@@ -101,7 +99,7 @@ def load(config, device, load_old=True, no_file_warning=False):
             state_dict["optimizer"]
         )
     else:
-        new_model = Net.from_pretrained(
+        new_model = RobertaMultiLabelModel.from_pretrained(
             config.NetWork.pretrained_model,
             project_config=config
         )

@@ -53,8 +53,6 @@ def train(training_set: PaperDataset, test_set: PaperDataset,
             hloss = test(test_set, training_set, model, config)
             evaluate(
                 model,
-                test_set=test_set,
-                training_set=training_set,
                 tag=f"h_{hloss:.8f}_{datetime.strftime(datetime.now(), '%Y_%m_%d_%H_%M_%S')}",
                 hloss=hloss
             )
@@ -99,9 +97,7 @@ if __name__ == "__main__":
         model = nn.DataParallel(model)
 
     training_set, test_set = \
-        generate_train_set(
-            config.Dataset.dataset_path, device
-        )  # get training set and test set
+        generate_train_set(config.Dataset.training_set, device)  # get training set and test set
 
     loss_ftc = BPMLLLoss(config.Loss.bias)  # use BP-MLL as loss function
     loss_ftc.to(device)
@@ -118,6 +114,4 @@ if __name__ == "__main__":
     evaluate(
         model=model,
         tag=f"final_{datetime.strftime(datetime.now(), '%Y_%m_%d_%H_%M_%S')}",
-        training_set=training_set,
-        test_set=test_set
     )  # evaluate the result

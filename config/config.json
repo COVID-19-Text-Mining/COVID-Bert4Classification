@@ -12,24 +12,17 @@
   "bias": [1, 2]
  },
  "NetWork": {
-  "pretrained_model": "scibert_scivocab_uncased",
-  "dropout_prob": 0.5,
+  "pretrained_model": "allenai/biomed_roberta_base",
+  "dropout_prob": 0.3,
   "fix_pretrained": true
  },
  "Dataset": {
-  "tokenizer_path": "scibert_scivocab_uncased",
-  "dataset_path": "rsc/already_annotated.json",
-  "text_key": "text",
-  "label_key": "cats",
-  "cats": [
-   "Treatment",
-   "Prevention",
-   "Mechanism",
-   "Diagnosis",
-   "Transmission",
-   "Epidemic_Forecasting",
-   "Case_Report"
-  ]
+  "tokenizer_path": "allenai/biomed_roberta_base",
+  "training_set": "rsc/training_set.json",
+  "test_set": "rsc/test_set.json",
+  "text_key": "abstract",
+  "label_key": "label",
+  "cats": ["Case_Report", "Treatment", "Prevention", "Diagnosis", "Transmission", "Epidemic_Forecasting", "Mechanism"]
  },
  "Predict": {
   "positive_threshold": 0.5
