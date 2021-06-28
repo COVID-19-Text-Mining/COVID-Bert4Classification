@@ -6,7 +6,8 @@ __pycache__/
 model/
 *.pth
 
-scibert_scivocab_uncased/
+checkpoints/
+rsc/
 
 .idea/
 
