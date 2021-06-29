@@ -28,11 +28,11 @@ if __name__ == '__main__':
         per_device_train_batch_size=8,
         per_device_eval_batch_size=8,
         gradient_accumulation_steps=4,
-        eval_accumulation_steps=32,
-        learning_rate=5e-5,
+        eval_accumulation_steps=4,
+        learning_rate=1e-4,
         num_train_epochs=8,
         lr_scheduler_type=SchedulerType.LINEAR,
-        warmup_ratio=0.1,
+        warmup_steps=2000,
         save_strategy=IntervalStrategy.EPOCH,
         no_cuda=False,
         fp16=False,
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
 
     optimizer = Adam(model.parameters(), training_args.learning_rate)
-    scheduler = MultiStepLR(optimizer, [500, 2000], gamma=0.1)
+    scheduler = MultiStepLR(optimizer, [3000, 7000], gamma=0.1)
 
     trainer = Trainer(
         model=model,
