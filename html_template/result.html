@@ -80,10 +80,18 @@
             margin-right: 16px;
         }
 
-        .logit-wrong {
-            color: red;
+        .logit-wrong,
+        .logit-missing {
             font-size: 100% !important;
             font-weight: 600;
+        }
+
+        .logit-wrong {
+            color: red;
+        }
+
+        .logit-missing {
+            color: blue;
         }
 
         .title-container,
@@ -114,7 +122,6 @@
         <h5>
             <b>Note</b>: The numbers after predicted label are raw output of the model. If you want to get the probability of each label,
             you may compute by <code>prob = sigmoid(logit) = 1. / (1. + exp(-logit))</code>.
-            Red and bold labels indicate <span style="color: red; font-weight: 600;">wrong predictions</span>.
         </h5>
     </div>
     <hr />
@@ -179,7 +186,7 @@
                         <span class="logit {{ paper.labels[loop.index-1] != 1 and 'logit-wrong' }}">({{ logit|round(2) }})</span>
                     {% elif logit < 0 and paper.labels[loop.index-1] != 0 %}
                         <span class="badge badge-{{ loop.index }} badge-extra">{{ index2label[loop.index] }}</span>
-                        <span class="logit logit-wrong">({{ logit|round(2) }})</span>
+                        <span class="logit logit-missing">({{ logit|round(2) }})</span>
                     {% endif %}
                 {%- endfor %}
             </div>
