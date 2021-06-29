@@ -1,8 +1,7 @@
 """
-Model
+Multi-label model
 """
 
-import torch
 import torch.nn as nn
 from transformers import RobertaModel, RobertaPreTrainedModel
 
@@ -25,7 +24,7 @@ class RobertaMultiLabelModel(RobertaPreTrainedModel):
             config.hidden_size, self.num_labels
         )
 
-        self.loss_ftc = nn.BCELoss()
+        self.loss_ftc = nn.BCEWithLogitsLoss()
 
     def forward(
             self,
@@ -48,7 +47,6 @@ class RobertaMultiLabelModel(RobertaPreTrainedModel):
 
         output = self.dropout(output)
         logits = self.classifier(output)
-        logits = torch.sigmoid(logits)
 
         if labels is not None:
             loss = self.loss_ftc(logits, labels)

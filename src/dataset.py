@@ -1,5 +1,5 @@
 """
-Load the training data
+Dataset class to provide training data
 """
 
 import json
@@ -9,6 +9,8 @@ from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import RobertaTokenizer
 
+from config import PRETRAINED_MODEL
+
 
 class PaperDataset(Dataset):
     def __init__(self, papers, cats):
@@ -17,7 +19,7 @@ class PaperDataset(Dataset):
         text = []
         mask = []
 
-        roberta_tokenizer = RobertaTokenizer.from_pretrained("allenai/biomed_roberta_base")
+        roberta_tokenizer = RobertaTokenizer.from_pretrained(PRETRAINED_MODEL)
 
         for paper in tqdm(papers, desc="Preparing dataset"):
             abstract_text = paper["abstract"]
