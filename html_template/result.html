@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Set Result</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+        .meta-container,
+        .content {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            margin: 4px;
+        }
+
+        .meta-container {
+            padding: 16px 24px;
+        }
+
+        .meta-container > h1, h2, h3, h4, h5, h6, p {
+            margin-bottom: 0;
+        }
+
+        .content {
+            padding: 16px 24px;
+        }
+
+        .content b {
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+
+        .badge {
+            font-family: var(--bs-font-monospace);
+            font-size: 90%;
+            text-decoration: none;
+            background: #fff;
+            padding: .2em .4em;
+            border-radius: 4px;
+            border: 1px rgba(0, 0, 0, 0.3) solid;
+        }
+
+        .badge-1 {
+            color: crimson;
+        }
+
+        .badge-2 {
+            color: orange;
+        }
+
+        .badge-3 {
+            color: goldenrod;
+        }
+
+        .badge-4 {
+            color: green;
+        }
+
+        .badge-5 {
+            color: dodgerblue;
+        }
+
+        .badge-6 {
+            color: darkcyan;
+        }
+
+        .badge-7 {
+            color: purple;
+        }
+
+        .badge-8 {
+            color: gray;
+        }
+
+        .badge-extra {
+            text-decoration:line-through;
+        }
+
+        .logit {
+            font-size: 60%;
+            margin-right: 16px;
+        }
+
+        .logit-wrong {
+            color: red;
+            font-size: 100% !important;
+            font-weight: 600;
+        }
+
+        .title-container,
+        .pmid-container,
+        .doi-container,
+        .keywords-container,
+        .text-container,
+        .pred-label-container,
+        .label-container,
+        .backtotop-container {
+            margin-bottom: 8px;
+        }
+
+        .bookmark {
+            float: right;
+        }
+
+        .bookmark a {
+            text-decoration: none;
+            color: gray;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body style="margin: 24px 64px">
+    <a name="top"></a>
+    <div class="meta-container">
+        <h5>
+            <b>Note</b>: The numbers after predicted label are raw output of the model. If you want to get the probability of each label,
+            you may compute by <code>prob = sigmoid(logit) = 1. / (1. + exp(-logit))</code>.
+            Red and bold labels indicate <span style="color: red; font-weight: 600;">wrong predictions</span>.
+        </h5>
+    </div>
+    <hr />
+    {% for paper in output.results %}
+        <div class="content">
+            <a name="{{ loop.index }}"></a>
+            <div class="bookmark">
+                <a href="#{{ loop.index }}">{{loop.index}}</a>
+            </div>
+            <div class="title-container">
+                <b class="name">Title</b>:
+                <span class="title">
+                    {{ paper.title }}
+                </span>
+            </div>
+
+            <div class="pmid-container">
+                <b class="name">PMID</b>:
+                <a href="https://pubmed.ncbi.nlm.nih.gov/{{ paper.pmid }}/" class="pmid code-href" target="_blank">
+                    {{ paper.pmid }}
+                </a>
+            </div>
+
+            <div class="doi-container">
+                <b class="name">DOI</b>:
+                <a href="https://doi.org/{{ paper.doi }}" class="doi code-href" target="_blank">
+                    {{ paper.doi }}
+                </a>
+            </div>
+
+            <div class="keywords-container">
+                <b class="name">Keywords</b>:
+                {% for keyword in paper.keywords -%}
+                    <span class="keyword">{{ keyword }}</span>
+                    {% if not loop.last -%}
+                        {{ ", "}}
+                    {%- endif %}
+                {%- endfor %}
+            </div>
+
+            <div class="text-container">
+                <b class="name">Abstract</b>:
+                <p>
+                    {{ paper.text }}
+                </p>
+            </div>
+
+            <div class="label-container">
+                <b class="name">Labels</b>:
+                {% for label in paper.labels -%}
+                    {% if label %}
+                        <span class="badge badge-{{ loop.index }}">{{ index2label[loop.index] }}</span>
+                    {% endif%}
+                {%- endfor %}
+            </div>
+
+            <div class="pred-label-container">
+                <b class="name">Predictions</b>:
+                {% for logit in paper.logits -%}
+                    {% if logit > 0 %}
+                        <span class="badge badge-{{ loop.index }}">{{ index2label[loop.index] }}</span>
+                        <span class="logit {{ paper.labels[loop.index-1] != 1 and 'logit-wrong' }}">({{ logit|round(2) }})</span>
+                    {% elif logit < 0 and paper.labels[loop.index-1] != 0 %}
+                        <span class="badge badge-{{ loop.index }} badge-extra">{{ index2label[loop.index] }}</span>
+                        <span class="logit logit-wrong">({{ logit|round(2) }})</span>
+                    {% endif %}
+                {%- endfor %}
+            </div>
+
+            <div class="backtotop-container">
+                <a href="#top">Back To Top ⬆</a>
+            </div>
+        </div>
+    {% endfor %}
+</body>
+</html>

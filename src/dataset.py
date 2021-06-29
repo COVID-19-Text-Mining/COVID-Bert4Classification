@@ -16,6 +16,7 @@ class PaperDataset(Dataset):
     def __init__(self, papers, cats):
         x = []
         y = []
+        metadata = []
         text = []
         mask = []
 
@@ -37,6 +38,12 @@ class PaperDataset(Dataset):
                     return_special_tokens_mask=False,
                     return_offsets_mapping=False,
                 )
+                metadata.append({
+                    "title": paper["title"],
+                    "pmid": paper["pmid"],
+                    "doi": paper["doi"],
+                    "keywords": paper["keywords"].split(";"),
+                })
                 x.append(ids["input_ids"])
                 mask.append(ids["attention_mask"])
                 y.append(label)
@@ -46,6 +53,7 @@ class PaperDataset(Dataset):
         self.mask = torch.tensor(mask, dtype=torch.float32)
         self.y = torch.tensor(y, dtype=torch.float32)
         self.text = text
+        self.metadata = metadata
         assert self.x.size()[0] == self.mask.size()[0] == self.y.size()[0] == len(self.text)
 
     def __getitem__(self, index):

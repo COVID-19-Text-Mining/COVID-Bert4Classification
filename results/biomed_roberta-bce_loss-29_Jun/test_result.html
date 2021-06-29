@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Set Result</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+        .meta-container,
+        .content {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            margin: 4px;
+        }
+
+        .meta-container {
+            padding: 16px 24px;
+        }
+
+        .meta-container > h1, h2, h3, h4, h5, h6, p {
+            margin-bottom: 0;
+        }
+
+        .content {
+            padding: 16px 24px;
+        }
+
+        .content b {
+            font-weight: 600;
+            font-size: 1.05em;
+        }
+
+        .badge {
+            font-family: var(--bs-font-monospace);
+            font-size: 90%;
+            text-decoration: none;
+            background: #fff;
+            padding: .2em .4em;
+            border-radius: 4px;
+            border: 1px rgba(0, 0, 0, 0.3) solid;
+        }
+
+        .badge-1 {
+            color: crimson;
+        }
+
+        .badge-2 {
+            color: orange;
+        }
+
+        .badge-3 {
+            color: goldenrod;
+        }
+
+        .badge-4 {
+            color: green;
+        }
+
+        .badge-5 {
+            color: dodgerblue;
+        }
+
+        .badge-6 {
+            color: darkcyan;
+        }
+
+        .badge-7 {
+            color: purple;
+        }
+
+        .badge-8 {
+            color: gray;
+        }
+
+        .badge-extra {
+            text-decoration:line-through;
+        }
+
+        .logit {
+            font-size: 60%;
+            margin-right: 16px;
+        }
+
+        .logit-wrong {
+            color: red;
+            font-size: 100% !important;
+            font-weight: 600;
+        }
+
+        .title-container,
+        .pmid-container,
+        .doi-container,
+        .keywords-container,
+        .text-container,
+        .pred-label-container,
+        .label-container,
+        .backtotop-container {
+            margin-bottom: 8px;
+        }
+
+        .bookmark {
+            float: right;
+        }
+
+        .bookmark a {
+            text-decoration: none;
+            color: gray;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body style="margin: 24px 64px">
+    <a name="top"></a>
+    <div class="meta-container">
+        <h5>
+            <b>Note</b>: The numbers after predicted label are raw output of the model. If you want to get the probability of each label,
+            you may compute by <code>prob = sigmoid(logit) = 1. / (1. + exp(-logit))</code>.
+            Red and bold labels indicate <span style="color: red; font-weight: 600;">wrong predictions</span>.
+        </h5>
+    </div>
+    <hr />
+    
+        <div class="content">
+            <a name="1"></a>
+            <div class="bookmark">
+                <a href="#1">1</a>
+            </div>
+            <div class="title-container">
+                <b class="name">Title</b>:
+                <span class="title">
+                    Potential benefits and risks of omega-3 fatty acids supplementation to patients with COVID-19.
+                </span>
+            </div>
+
+            <div class="pmid-container">
+                <b class="name">PMID</b>:
+                <a href="https://pubmed.ncbi.nlm.nih.gov/32653511/" class="pmid code-href" target="_blank">
+                    32653511
+                </a>
+            </div>
+
+            <div class="doi-container">
+                <b class="name">DOI</b>:
+                <a href="https://doi.org/10.1016/j.freeradbiomed.2020.07.005" class="doi code-href" target="_blank">
+                    10.1016/j.freeradbiomed.2020.07.005
+                </a>
+            </div>
+
+            <div class="keywords-container">
+                <b class="name">Keywords</b>:
+                <span class="keyword">dha</span>
+                    , <span class="keyword">epa</span>
+                    , <span class="keyword">inflammation</span>
+                    , <span class="keyword">oxidative stress</span>
+                    , <span class="keyword">sars-cov-2</span>
+                    , <span class="keyword">spms</span>
+                    
+            </div>
+
+            <div class="text-container">
+                <b class="name">Abstract</b>:
+                <p>
+                    Studies have shown that infection, excessive coagulation, cytokine storm, leukopenia, lymphopenia, hypoxemia and oxidative stress have also been observed in critically ill Severe Acute Respiratory Syndrome coronavirus 2 (SARS-CoV-2) patients in addition to the onset symptoms. There are still no approved drugs or vaccines. Dietary supplements could possibly improve the patient's recovery. Omega-3 fatty acids, specifically eicosapentaenoic acid (EPA) and docosahexaenoic acid (DHA), present an anti-inflammatory effect that could ameliorate some patients need for intensive care unit (ICU) admission. EPA and DHA replace arachidonic acid (ARA) in the phospholipid membranes. When oxidized by enzymes, EPA and DHA contribute to the synthesis of less inflammatory eicosanoids and specialized pro-resolving lipid mediators (SPMs), such as resolvins, maresins and protectins. This reduces inflammation. In contrast, some studies have reported that EPA and DHA can make cell membranes more susceptible to non-enzymatic oxidation mediated by reactive oxygen species, leading to the formation of potentially toxic oxidation products and increasing the oxidative stress. Although the inflammatory resolution improved by EPA and DHA could contribute to the recovery of patients infected with SARS-CoV-2, Omega-3 fatty acids supplementation cannot be recommended before randomized and controlled trials are carried out.
+                </p>
+            </div>
+
+            <div class="label-container">
+                <b class="name">Labels</b>:
+                
+                        <span class="badge badge-2">Treatment</span>
+                    
+            </div>
+
+            <div class="pred-label-container">
+                <b class="name">Predictions</b>:
+                
+                        <span class="badge badge-2">Treatment</span>
+                        <span class="logit False">(6.79)</span>
+                    
+                        <span class="badge badge-7">Mechanism</span>
+                        <span class="logit logit-wrong">(1.55)</span>
+                    
+            </div>
+
+            <div class="backtotop-container">
+                <a href="#top">Back To Top ⬆</a>
+            </div>
+        </div>
+    
+        <div class="content">
+            <a name="2"></a>
+            <div class="bookmark">
+                <a href="#2">2</a>
+            </div>
+            <div class="title-container">
+                <b class="name">Title</b>:
+                <span class="title">
+                    Modeling COVID-19 Latent Prevalence to Assess a Public Health Intervention at a State and Regional Scale: Retrospective Cohort Study.
+                </span>
+            </div>
+
+            <div class="pmid-container">
+                <b class="name">PMID</b>:
+                <a href="https://pubmed.ncbi.nlm.nih.gov/32427104/" class="pmid code-href" target="_blank">
+                    32427104
+                </a>
+            </div>
+
+            <div class="doi-container">
+                <b class="name">DOI</b>:
+                <a href="https://doi.org/10.2196/19353" class="doi code-href" target="_blank">
+                    10.2196/19353
+                </a>
+            </div>
+
+            <div class="keywords-container">
+                <b class="name">Keywords</b>:
+                <span class="keyword">covid-19</span>
+                    , <span class="keyword">sir model</span>
+                    , <span class="keyword">detection probability</span>
+                    , <span class="keyword">forecasting</span>
+                    , <span class="keyword">latent prevalence</span>
+                    , <span class="keyword">novel coronavirus 2019</span>
+                    , <span class="keyword">pandemic</span>
+                    , <span class="keyword">public health surveillance</span>
+                    
+            </div>
+
+            <div class="text-container">
+                <b class="name">Abstract</b>:
+                <p>
+                    BACKGROUND: Emergence of the coronavirus disease (COVID-19) caught the world off guard and unprepared, initiating a global pandemic. In the absence of evidence, individual communities had to take timely action to reduce the rate of disease spread and avoid overburdening their health care systems. Although a few predictive models have been published to guide these decisions, most have not taken into account spatial differences and have included assumptions that do not match the local realities. Access to reliable information that is adapted to local context is critical for policy makers to make informed decisions during a rapidly evolving pandemic. OBJECTIVE: The goal of this study was to develop an adapted susceptible-infected-removed (SIR) model to predict the trajectory of the COVID-19 pandemic in North Carolina and the Charlotte Metropolitan Region, and to incorporate the effect of a public health intervention to reduce disease spread while accounting for unique regional features and imperfect detection. METHODS: Three SIR models were fit to infection prevalence data from North Carolina and the greater Charlotte Region and then rigorously compared. One of these models (SIR-int) accounted for a stay-at-home intervention and imperfect detection of COVID-19 cases. We computed longitudinal total estimates of the susceptible, infected, and removed compartments of both populations, along with other pandemic characteristics such as the basic reproduction number. RESULTS: Prior to March 26, disease spread was rapid at the pandemic onset with the Charlotte Region doubling time of 2.56 days (95% CI 2.11-3.25) and in North Carolina 2.94 days (95% CI 2.33-4.00). Subsequently, disease spread significantly slowed with doubling times increased in the Charlotte Region to 4.70 days (95% CI 3.77-6.22) and in North Carolina to 4.01 days (95% CI 3.43-4.83). Reflecting spatial differences, this deceleration favored the greater Charlotte Region compared to North Carolina as a whole. A comparison of the efficacy of intervention, defined as 1 - the hazard ratio of infection, gave 0.25 for North Carolina and 0.43 for the Charlotte Region. In addition, early in the pandemic, the initial basic SIR model had good fit to the data; however, as the pandemic and local conditions evolved, the SIR-int model emerged as the model with better fit. CONCLUSIONS: Using local data and continuous attention to model adaptation, our findings have enabled policy makers, public health officials, and health systems to proactively plan capacity and evaluate the impact of a public health intervention. Our SIR-int model for estimated latent prevalence was reasonably flexible, highly accurate, and demonstrated efficacy of a stay-at-home order at both the state and regional level. Our results highlight the importance of incorporating local context into pandemic forecast modeling, as well as the need to remain vigilant and informed by the data as we enter into a critical period of the outbreak.
+                </p>
+            </div>
+
+            <div class="label-container">
+                <b class="name">Labels</b>:
+                
+                        <span class="badge badge-3">Prevention</span>
+                    
+                        <span class="badge badge-6">Epidemic_Forecasting</span>
+                    
+            </div>
+
+            <div class="pred-label-container">
+                <b class="name">Predictions</b>:
+                
+                        <span class="badge badge-3">Prevention</span>
+                        <span class="logit False">(2.48)</span>
+                    
+                        <span class="badge badge-6">Epidemic_Forecasting</span>
+                        <span class="logit False">(6.18)</span>
+                    
+            </div>
+
+            <div class="backtotop-container">
+                <a href="#top">Back To Top ⬆</a>
+            </div>
+        </div>
+    
+        <div class="content">
+            <a name="3"></a>
+            <div class="bookmark">
+                <a href="#3">3</a>
+            </div>
+            <div class="title-container">
+                <b class="name">Title</b>:
+                <span class="title">
+                    The U.S. Health Care System on the Eve of the Covid-19 Epidemic: A Summary of Recent Evidence on Its Impaired Performance.
+                </span>
+            </div>
+
+            <div class="pmid-container">
+                <b class="name">PMID</b>:
+                <a href="https://pubmed.ncbi.nlm.nih.gov/32605414/" class="pmid code-href" target="_blank">
+                    32605414
+                </a>
+            </div>
+
+            <div class="doi-container">
+                <b class="name">DOI</b>:
+                <a href="https://doi.org/10.1177/0020731420937631" class="doi code-href" target="_blank">
+                    10.1177/0020731420937631
+                </a>
+            </div>
+
+            <div class="keywords-container">
+                <b class="name">Keywords</b>:
+                <span class="keyword">covid-19</span>
+                    , <span class="keyword">united states</span>
+                    , <span class="keyword">health care</span>
+                    , <span class="keyword">health inequalities</span>
+                    , <span class="keyword">neoliberalism</span>
+                    
+            </div>
+
+            <div class="text-container">
+                <b class="name">Abstract</b>:
+                <p>
+                    Four decades of neoliberal health policies have left the United States with a health care system that prioritizes the profits of large corporate actors, denies needed care to tens of millions, is extraordinarily fragmented and inefficient, and was ill prepared to address the COVID-19 pandemic. The payment system has long rewarded hospitals for providing elective surgical procedures to well-insured patients while penalizing those providing the most essential and urgent services, causing hospital revenues to plummet as elective procedures were cancelled during the pandemic. Before the recession caused by the pandemic, tens of millions of Americans were unable to afford care, compromising their physical and financial health; deep-pocketed corporate interests were increasingly dominating the hospital industry and taking over physicians' practices; and insurers' profits hit record levels. Meanwhile, yawning class-based and racial inequities in care and health outcomes remain and have even widened. Recent data highlight the failure of policy strategies based on market models and the need to shift to a nonprofit social insurance model.
+                </p>
+            </div>
+
+            <div class="label-container">
+                <b class="name">Labels</b>:
+                
+                        <span class="badge badge-3">Prevention</span>
+                    
+            </div>
+
+            <div class="pred-label-container">
+                <b class="name">Predictions</b>:
+                
+                        <span class="badge badge-3">Prevention</span>
+                        <span class="logit False">(6.68)</span>
+                    
+            </div>
+
+            <div class="backtotop-container">
+                <a href="#top">Back To Top ⬆</a>
+            </div>
+        </div>
+    
+        <div class="content">
+            <a name="4"></a>
+            <div class="bookmark">
+                <a href="#4">4</a>
+            </div>
+            <div class="title-container">
+                <b class="name">Title</b>:
+                <span class="title">
+                    High-Throughput Screening for Inhibitors of the SARS-CoV-2 Protease Using a FRET-Biosensor.
+                </span>
+            </div>
+
+            <div class="pmid-container">
+                <b class="name">PMID</b>:
+                <a href="https://pubmed.ncbi.nlm.nih.gov/33066278/" class="pmid code-href" target="_blank">
+                    33066278
+                </a>
+            </div>
+
+            <div class="doi-container">
+                <b class="name">DOI</b>:
+                <a href="https://doi.org/10.3390/molecules25204666" class="doi code-href" target="_blank">
+                    10.3390/molecules25204666
+                </a>
+            </div>
+
+            <div class="keywords-container">
+                <b class="name">Keywords</b>:
+                <span class="keyword">3clpro</span>
+                    , <span class="keyword">covid-19</span>
+                    , <span class="keyword">sars-cov-2</span>
+                    , <span class="keyword">apomorphine</span>
+                    , <span class="keyword">aporphine</span>
+                    , <span class="keyword">cysteine protease</span>
+                    , <span class="keyword">ebselen</span>
+                    
+            </div>
+
+            <div class="text-container">
+                <b class="name">Abstract</b>:
+                <p>
+                    The global SARS-CoV-2 pandemic started late 2019 and currently continues unabated. The lag-time for developing vaccines means it is of paramount importance to be able to quickly develop and repurpose therapeutic drugs. Protein-based biosensors allow screening to be performed using routine molecular laboratory equipment without a need for expensive chemical reagents. Here we present a biosensor for the 3-chymotrypsin-like cysteine protease from SARS-CoV-2, comprising a FRET-capable pair of fluorescent proteins held in proximity by a protease cleavable linker. We demonstrate the utility of this biosensor for inhibitor discovery by screening 1280 compounds from the Library of Pharmaceutically Active Compounds collection. The screening identified 65 inhibitors, with the 20 most active exhibiting sub-micromolar inhibition of 3CL(pro) in follow-up EC50 assays. The top hits included several compounds not previously identified as 3CL(pro) inhibitors, in particular five members of a family of aporphine alkaloids that offer promise as new antiviral drug leads.
+                </p>
+            </div>
+
+            <div class="label-container">
+                <b class="name">Labels</b>:
+                
+                        <span class="badge badge-2">Treatment</span>
+                    
+                        <span class="badge badge-7">Mechanism</span>
+                    
+            </div>
+
+            <div class="pred-label-container">
+                <b class="name">Predictions</b>:
+                
+                        <span class="badge badge-2">Treatment</span>
+                        <span class="logit False">(7.3)</span>
+                    
+                        <span class="badge badge-7">Mechanism</span>
+                        <span class="logit False">(5.21)</span>
+                    
+            </div>
+
+            <div class="backtotop-container">
+                <a href="#top">Back To Top ⬆</a>
+            </div>
+        </div>
+    
+        <div class="content">
+            <a name="5"></a>
+            <div class="bookmark">
+                <a href="#5">5</a>
+            </div>
+            <div class="title-container">
+                <b class="name">Title</b>:
+                <span class="title">
+                    COVID-19 and immunomodulation in IBD.
+                </span>
+            </div>
+
+            <div class="pmid-container">
+                <b class="name">PMID</b>:
+                <a href="https://pubmed.ncbi.nlm.nih.gov/32303609/" class="pmid code-href" target="_blank">
+                    32303609
+                </a>
+            </div>
+
+            <div class="doi-container">
+                <b class="name">DOI</b>:
+                <a href="https://doi.org/10.1136/gutjnl-2020-321269" class="doi code-href" target="_blank">
+                    10.1136/gutjnl-2020-321269
+                </a>
+            </div>
+
+            <div class="keywords-container">
+                <b class="name">Keywords</b>:
+                <span class="keyword">cytokines</span>
+                    , <span class="keyword">inflammation</span>
+                    , <span class="keyword">inflammatory bowel disease</span>
+                    
+            </div>
+
+            <div class="text-container">
+                <b class="name">Abstract</b>:
+                <p>
+                    The current coronavirus pandemic is an ongoing global health crisis due to COVID-19, caused by severe acute respiratory syndrome coronavirus 2. Although COVID-19 leads to little or mild flu-like symptoms in the majority of affected patients, the disease may cause severe, frequently lethal complications such as progressive pneumonia, acute respiratory distress syndrome and organ failure driven by hyperinflammation and a cytokine storm syndrome. This situation causes various major challenges for gastroenterology. In the context of IBD, several key questions arise. For instance, it is an important question to understand whether patients with IBD (eg, due to intestinal ACE2 expression) might be particularly susceptible to COVID-19 and the cytokine release syndrome associated with lung injury and fatal outcomes. Another highly relevant question is how to deal with immunosuppression and immunomodulation during the current pandemic in patients with IBD and whether immunosuppression affects the progress of COVID-19. Here, the current understanding of the pathophysiology of COVID-19 is reviewed with special reference to immune cell activation. Moreover, the potential implications of these new insights for immunomodulation and biological therapy in IBD are discussed.
+                </p>
+            </div>
+
+            <div class="label-container">
+                <b class="name">Labels</b>:
+                
+                        <span class="badge badge-2">Treatment</span>
+                    
+                        <span class="badge badge-7">Mechanism</span>
+                    
+            </div>
+
+            <div class="pred-label-container">
+                <b class="name">Predictions</b>:
+                
+                        <span class="badge badge-2">Treatment</span>
+                        <span class="logit False">(8.87)</span>
+                    
+                        <span class="badge badge-7">Mechanism</span>
+                        <span class="logit False">(4.9)</span>
+                    
+            </div>
+
+            <div class="backtotop-container">
+                <a href="#top">Back To Top ⬆</a>
+            </div>
+        </div>
+    
+        <div class="content">
+            <a name="6"></a>
+            <div class="bookmark">
+                <a href="#6">6</a>
+            </div>
+            <div class="title-container">
+                <b class="name">Title</b>:
+                <span class="title">
+                    Pharmacists' perceived barriers towards delivering their emergency roles during the COVID-19 pandemic and perceived policymakers' responsibilities.
+                </span>
+            </div>
+
+            <div class="pmid-container">
+                <b class="name">PMID</b>:
+                <a href="https://pubmed.ncbi.nlm.nih.gov/32974036/" class="pmid code-href" target="_blank">
+                    32974036
+                </a>
+            </div>
+
+            <div class="doi-container">
+                <b class="name">DOI</b>:
+                <a href="https://doi.org/10.1186/s40545-020-00254-y" class="doi code-href" target="_blank">
+                    10.1186/s40545-020-00254-y
+                </a>
+            </div>
+
+            <div class="keywords-container">
+                <b class="name">Keywords</b>:
+                <span class="keyword">coronavirus</span>
+                    , <span class="keyword">educational institutes</span>
+                    , <span class="keyword">faculty of pharmacy</span>
+                    , <span class="keyword">jordan</span>
+                    , <span class="keyword">pandemics</span>
+                    , <span class="keyword">pharmaceutical association</span>
+                    , <span class="keyword">pharmacy educators</span>
+                    
+            </div>
+
+            <div class="text-container">
+                <b class="name">Abstract</b>:
+                <p>
+                    Rational: In March 2020, the World Health Organization (WHO) declared the coronavirus infectious disease as a pandemic referred to as COVID-19. As an essential service, community pharmacists have been enacting a key role in patient counseling and supply of essential medicines and protective equipment. Objectives: To investigate pharmacists' perspectives of the role of educational institutes and professional pharmacy organizations in supporting them to take on roles during COVID-19 pandemic and to identify barriers to be able to support themselves and their patients. Methods: This descriptive mixed-method study was conducted via a cross-sectional online survey distributed to pharmacists/pharmacy students in Jordan during the COVID-19 outbreak (15-30 March 2020) using an online questionnaire, followed by an online focus group. Questionnaire items related to participants' perspectives in being prepared for and supported in their roles during the COVID-19 pandemic, and items were tested for face validity. Data were descriptively analyzed using the Statistical Package for the Social Sciences and triangulated with focus group findings. Results: Considering that fear and anxiety are a consequence of mass social distancing/quarantine, study participants (n = 726, age = 26.9 (SD = 8.0) years, 71.9% females), reported needing training on mental healthcare to be able to support themselves and people during pandemics (90.2%). Most respondents agreed/strongly agreed (59.7%) with the statement around pharmacy educators/educational institutes having a key role in preparing pharmacists for practice during epidemics/pandemics and agreed that their faculties should add a course regarding pandemic preparedness in their curriculum (89.9%). Results were similar regarding roles for the pharmaceutical associations. Focus group findings (n = 7) mirrored the survey findings to a large extent. Conclusions: Most participants believed that pharmacy educators and pharmaceutical associations have a role in preparing them to deal with the COVID-19 pandemic through online educational workshops/webinars. Online education on mental healthcare is specifically needed.
+                </p>
+            </div>
+
+            <div class="label-container">
+                <b class="name">Labels</b>:
+                
+                        <span class="badge badge-3">Prevention</span>
+                    
+            </div>
+
+            <div class="pred-label-container">
+                <b class="name">Predictions</b>:
+                
+                        <span class="badge badge-3">Prevention</span>
+                        <span class="logit False">(6.76)</span>
+                    
+            </div>
+
+            <div class="backtotop-container">
+                <a href="#top">Back To Top ⬆</a>
+            </div>
+        </div>
+    
+        <div class="content">
+            <a name="7"></a>
+            <div class="bookmark">
+                <a href="#7">7</a>
+            </div>
+            <div class="title-container">
+                <b class="name">Title</b>:
+                <span class="title">
+                    Breast cancer care during a pandemic: an opportune time for cryoablation?
+                </span>
+            </div>
+
+            <div class="pmid-container">
+                <b class="name">PMID</b>:
+                <a href="https://pubmed.ncbi.nlm.nih.gov/32529409/" class="pmid code-href" target="_blank">
+                    32529409
+                </a>
+            </div>
+
+            <div class="doi-container">
+                <b class="name">DOI</b>:
+                <a href="https://doi.org/10.1007/s10549-020-05724-0" class="doi code-href" target="_blank">
+                    10.1007/s10549-020-05724-0
+                </a>
+            </div>
+
+            <div class="keywords-container">
+                <b class="name">Keywords</b>:
+                <span class="keyword">ablation</span>
+                    , <span class="keyword">covid-19</span>
+                    , <span class="keyword">coronavirus</span>
+                    , <span class="keyword">cryoablation</span>
+                    , <span class="keyword">cryosurgery</span>
+                    , <span class="keyword">pandemic</span>
+                    
+            </div>
+
+            <div class="text-container">
+                <b class="name">Abstract</b>:
+                <p>
+                    PURPOSE: Cryoablation is a minimally-invasive percutaneous procedure that is capable of reducing the psychosocial burden of surgical delay while also decreasing the morbidity of breast cancer therapy. The purpose of this editorial is to discuss the potential role of cryoablation for reducing the psychosocial burden of surgical delay during the COVID-19 pandemic by expediting the management of breast cancer while also lessening demand on limited healthcare resources. METHODS: This editorial critiques current expert opinion recommendations that aim to reduce viral transmission and preserve healthcare resources during the COVID-19 pandemic by advocating delay of elective breast cancer surgery. RESULTS: The editorial summarizes the current state of the evidence that supports the selective use of cryoablation as a definite or stopgap measure in the management of breast cancer during the COVID-19 pandemic or when healthcare resources are limited. CONCLUSIONS: As an office-based procedure performed under local anesthesia, cryoablation eliminates the need for operating room personnel and equipment while also reducing the psychosocial impact of delayed breast cancer surgery. By reducing the number of patient and healthcare provider interactions, cryoablation not only decreases the risk of viral transmission but also the need for personal protective devices during resource-limited times.
+                </p>
+            </div>
+
+            <div class="label-container">
+                <b class="name">Labels</b>:
+                
+                        <span class="badge badge-3">Prevention</span>
+                    
+            </div>
+
+            <div class="pred-label-container">
+                <b class="name">Predictions</b>:
+                
+                        <span class="badge badge-3">Prevention</span>
+                        <span class="logit False">(6.76)</span>
+                    
+            </div>
+
+            <div class="backtotop-container">
+                <a href="#top">Back To Top ⬆</a>
+            </div>
+        </div>
+    
+        <div class="content">
+            <a name="8"></a>
+            <div class="bookmark">
+                <a href="#8">8</a>
+            </div>
+            <div class="title-container">
+                <b class="name">Title</b>:
+                <span class="title">
+                    Sedentary Behaviors and Physical Activity of Italian Undergraduate Students during Lockdown at the Time of CoViD-19 Pandemic.
+                </span>
+            </div>
+
+            <div class="pmid-container">
+                <b class="name">PMID</b>:
+                <a href="https://pubmed.ncbi.nlm.nih.gov/32854414/" class="pmid code-href" target="_blank">
+                    32854414
+                </a>
+            </div>
+
+            <div class="doi-container">
+                <b class="name">DOI</b>:
+                <a href="https://doi.org/10.3390/ijerph17176171" class="doi code-href" target="_blank">
+                    10.3390/ijerph17176171
+                </a>
+            </div>
+
+            <div class="keywords-container">
+                <b class="name">Keywords</b>:
+                <span class="keyword">covid-19</span>
+                    , <span class="keyword">lockdown</span>
+                    , <span class="keyword">physical activity</span>
+                    , <span class="keyword">sedentary behaviors</span>
+                    , <span class="keyword">undergraduates</span>
+                    
+            </div>
+
+            <div class="text-container">
+                <b class="name">Abstract</b>:
+                <p>
+                    Background: From March to May 2020, lockdown measures were adopted in Italy to contain the epidemic of the novel Coronavirus. People were forced to restrict their movement and social contacts, therefore having a higher risk of inactivity. This study, carried out among Italian undergraduates, explored their sedentary and physical activities (PA) during the lockdown with respect to their previous habits. Methods: An electronic questionnaire was administered once to students attending three Italian universities after the end of lockdown. Results: A total of 1430 students (mean age 22.9 +/- 3.5 years, 65.5% females) completed the questionnaire. All the sedentary behaviors increased significantly, and all the physical activities decreased significantly during the lockdown. Time spent using electronic devices showed the highest increase (+52.4 min/day), and walking the greatest decrease (-365.5 min/week). Being younger than 22 years old, female, and previously active, attending the universities of Naples and Rome and having at least one graduate parent were associated with the achievement of recommended levels of PA even during the lockdown. Conclusions: This study highlights the reduction of PA among Italian undergraduates in the course of home-confinement due to the CoViD-19 pandemic. The practice of adequate PA during the lockdown was mainly associated with the previous adoption of an active lifestyle. Promoting active lifestyles during the non-pandemic period may have had positive effects also in case of lockdown.
+                </p>
+            </div>
+
+            <div class="label-container">
+                <b class="name">Labels</b>:
+                
+                        <span class="badge badge-3">Prevention</span>
+                    
+            </div>
+
+            <div class="pred-label-container">
+                <b class="name">Predictions</b>:
+                
+                        <span class="badge badge-3">Prevention</span>
+                        <span class="logit False">(6.85)</span>
+                    
+            </div>
+
+            <div class="backtotop-container">
+                <a href="#top">Back To Top ⬆</a>
+            </div>
+        </div>
+    
+        <div class="content">
+            <a name="9"></a>
+            <div class="bookmark">
+                <a href="#9">9</a>
+            </div>
+            <div class="title-container">
+                <b class="name">Title</b>:
+                <span class="title">
+                    Rigorous Hand Hygiene Practices Among Health Care Workers Reduce Hospital-Associated Infections During the COVID-19 Pandemic.
+                </span>
+            </div>
+
+            <div class="pmid-container">
+                <b class="name">PMID</b>:
+                <a href="https://pubmed.ncbi.nlm.nih.gov/32686571/" class="pmid code-href" target="_blank">
+                    32686571
+                </a>
+            </div>
+
+            <div class="doi-container">
+                <b class="name">DOI</b>:
+                <a href="https://doi.org/10.1177/2150132720943331" class="doi code-href" target="_blank">
+                    10.1177/2150132720943331
+                </a>
+            </div>
+
+            <div class="keywords-container">
+                <b class="name">Keywords</b>:
+                <span class="keyword">covid-19</span>
+                    , <span class="keyword">hand hygiene compliance</span>
+                    , <span class="keyword">hospital-associated infections (hais)</span>
+                    
+            </div>
+
+            <div class="text-container">
+                <b class="name">Abstract</b>:
+                <p>
+                    The experiences of these recent months have left us with as many new questions as they have given us new solutions. The main question that infection prevention and control department is having these days is "Why have hospital-associated infections (HAIs) reduced during COVID-19 pandemic?" What is the one unique strategy that has brought decline in increasing HAIs? Would it be appropriate to say that rigorous hand hygiene practices among health care workers (HCWs) have reduced HAIs in a tertiary care hospital of Pakistan? This commentary is written to understand the effect of rigorous hand hygiene among HCWs on number of HAIs during COVID-19 pandemic. Given the seriousness of this outbreak, it was observed that the hand hygiene has occupied a new place of importance in the minds of HCWs. We observed 4 times increase in the consumption of hand sanitizers after COVID-19 outbreak. The increased consumption of hand sanitizers was reflected in improved hand hygiene practices. A reduction was observed in the number of HAIs after the COVID-19 outbreak, and we assume that the dip in HAIs is associated with the improvement in hand hygiene practices in the recent months. In the wake of COVID-19 pandemic, these trends reassure us that hand hygiene compliance by HCWs alone can be effective in reducing HAIs in a hospital setting.
+                </p>
+            </div>
+
+            <div class="label-container">
+                <b class="name">Labels</b>:
+                
+                        <span class="badge badge-3">Prevention</span>
+                    
+            </div>
+
+            <div class="pred-label-container">
+                <b class="name">Predictions</b>:
+                
+                        <span class="badge badge-3">Prevention</span>
+                        <span class="logit False">(6.87)</span>
+                    
+            </div>
+
+            <div class="backtotop-container">
+                <a href="#top">Back To Top ⬆</a>
+            </div>
+        </div>
+    
+        <div class="content">
+            <a name="10"></a>
+            <div class="bookmark">
+                <a href="#10">10</a>
+            </div>
+            <div class="title-container">
+                <b class="name">Title</b>:
+                <span class="title">
+                    Asthma and COPD Are Not Risk Factors for ICU Stay and Death in Case of SARS-CoV2 Infection.
+                </span>
+            </div>
+
+            <div class="pmid-container">
+                <b class="name">PMID</b>:
+                <a href="https://pubmed.ncbi.nlm.nih.gov/33038592/" class="pmid code-href" target="_blank">
+                    33038592
+                </a>
+            </div>
+
+            <div class="doi-container">
+                <b class="name">DOI</b>:
+                <a href="https://doi.org/10.1016/j.jaip.2020.09.044" class="doi code-href" target="_blank">
+                    10.1016/j.jaip.2020.09.044
+                </a>
+            </div>
+
+            <div class="keywords-container">
+                <b class="name">Keywords</b>:
+                <span class="keyword">asthma</span>
+                    , <span class="keyword">copd</span>
+                    , <span class="keyword">covid19</span>
+                    , <span class="keyword">death</span>
+                    , <span class="keyword">icu</span>
+                    , <span class="keyword">risk factors</span>
+                    , <span class="keyword">sars-cov2</span>
+                    , <span class="keyword">severe asthma</span>
+                    , <span class="keyword">viral infection</span>
+                    
+            </div>
+
+            <div class="text-container">
+                <b class="name">Abstract</b>:
+                <p>
+                    BACKGROUND: Asthmatics and patients with chronic obstructive pulmonary disease (COPD) have more severe outcomes with viral infections than people without obstructive disease. OBJECTIVE: To evaluate if obstructive diseases are risk factors for intensive care unit (ICU) stay and death due to coronavirus disease 2019 (COVID19). METHODS: We collected data from the electronic medical record from 596 adult patients hospitalized in University Hospital of Liege between March 18 and April 17, 2020, for severe acute respiratory syndrome coronavirus 2 (SARS-CoV2) infection. We classified patients into 3 groups according to the underlying respiratory disease, present before the COVID19 pandemic. RESULTS: Among patients requiring hospitalization for COVID19, asthma and COPD accounted for 9.6% and 7.7%, respectively. The proportions of asthmatics, patients with COPD, and patients without obstructive airway disease hospitalized in the ICU were 17.5%, 19.6%, and 14%, respectively. One-third of patients with COPD died during hospitalization, whereas only 7.0% of asthmatics and 13.6% of patients without airway obstruction died due to SARS-CoV2. The multivariate analysis showed that asthma, COPD, inhaled corticosteroid treatment, and oral corticosteroid treatment were not independent risk factors for ICU admission or death. Male gender (odds ratio [OR]: 1.9; 95% confidence interval [CI]: 1.1-3.2) and obesity (OR: 8.5; 95% CI: 5.1-14.1) were predictors of ICU admission, whereas male gender (OR 1.9; 95% CI: 1.1-3.2), older age (OR: 1.9; 95% CI: 1.6-2.3), cardiopathy (OR: 1.8; 95% CI: 1.1-3.1), and immunosuppressive diseases (OR: 3.6; 95% CI: 1.5-8.4) were independent predictors of death. CONCLUSION: Asthma and COPD are not risk factors for ICU admission and death related to SARS-CoV2 infection.
+                </p>
+            </div>
+
+            <div class="label-container">
+                <b class="name">Labels</b>:
+                
+                        <span class="badge badge-2">Treatment</span>
+                    
+                        <span class="badge badge-4">Diagnosis</span>
+                    
+            </div>
+
+            <div class="pred-label-container">
+                <b class="name">Predictions</b>:
+                
+                        <span class="badge badge-2">Treatment</span>
+                        <span class="logit False">(3.65)</span>
+                    
+                        <span class="badge badge-4">Diagnosis</span>
+                        <span class="logit False">(7.11)</span>
+                    
+            </div>
+
+            <div class="backtotop-container">
+                <a href="#top">Back To Top ⬆</a>
+            </div>
+        </div>
+    
+</body>
+</html>
