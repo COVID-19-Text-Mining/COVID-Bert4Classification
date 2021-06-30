@@ -3,7 +3,6 @@ Training scripts
 """
 
 from sklearn.metrics import hamming_loss, label_ranking_loss, label_ranking_average_precision_score
-from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import random_split
 from transformers import TrainingArguments, IntervalStrategy, EvalPrediction, Trainer, AdamW, \
     get_cosine_schedule_with_warmup
@@ -32,8 +31,8 @@ training_args = TrainingArguments(
     gradient_accumulation_steps=4,
     eval_accumulation_steps=4,
     learning_rate=1e-4,
-    num_train_epochs=8,
-    warmup_steps=3000,
+    num_train_epochs=12,
+    warmup_steps=1000,
     metric_for_best_model="hamming_loss",
     greater_is_better=False,
     save_strategy=IntervalStrategy.EPOCH,
@@ -72,8 +71,9 @@ scheduler = get_cosine_schedule_with_warmup(
     optimizer=optimizer,
     num_warmup_steps=training_args.warmup_steps,
     num_training_steps=(len(training_set) * training_args.num_train_epochs) //
-    (training_args.per_device_train_batch_size * training_args.n_gpu) -
-    training_args.warmup_steps + 10,
+                       (training_args.per_device_train_batch_size * training_args.n_gpu *
+                        training_args.gradient_accumulation_steps) -
+                       training_args.warmup_steps + training_args.num_train_epochs,
 )
 
 trainer = Trainer(
