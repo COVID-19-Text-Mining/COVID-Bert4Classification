@@ -3,9 +3,9 @@ Training scripts
 """
 
 from sklearn.metrics import hamming_loss, label_ranking_loss, label_ranking_average_precision_score
+from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import random_split
-from transformers import TrainingArguments, IntervalStrategy, EvalPrediction, Trainer, Adafactor
-from transformers.optimization import AdafactorSchedule
+from transformers import TrainingArguments, IntervalStrategy, EvalPrediction, Trainer, AdamW
 
 from config import CATS, PRETRAINED_MODEL
 from dataset import PaperDataset
@@ -16,7 +16,8 @@ model = RobertaMultiLabelModel.from_pretrained(
     PRETRAINED_MODEL,
     num_labels=len(CATS),
     dropout_prob=0.1,
-    id2labels={i: name for i, name in enumerate(CATS)},
+    id2label={i: name for i, name in enumerate(CATS)},
+    mirror="tuna",
 )
 training_args = TrainingArguments(
     output_dir="../checkpoints/",
@@ -30,14 +31,14 @@ training_args = TrainingArguments(
     gradient_accumulation_steps=4,
     eval_accumulation_steps=4,
     learning_rate=1e-4,
-    num_train_epochs=16,
-    warmup_steps=3000,
+    num_train_epochs=8,
+    warmup_steps=2000,
     metric_for_best_model="hamming_loss",
     greater_is_better=False,
     save_strategy=IntervalStrategy.EPOCH,
     no_cuda=False,
     fp16=False,
-    adafactor=True,
+    adafactor=False,
     logging_strategy=IntervalStrategy.STEPS,
     logging_steps=10,
     report_to=["tensorboard"],
@@ -62,14 +63,11 @@ def compute_metrics(eval_prediction: EvalPrediction) -> dict:
     }
 
 
-optimizer = Adafactor(
+optimizer = AdamW(
     model.parameters(),
-    scale_parameter=True,
-    relative_step=True,
-    warmup_init=True,
-    lr=None
+    lr=training_args.learning_rate,
 )
-scheduler = AdafactorSchedule(optimizer)
+scheduler = MultiStepLR(optimizer, milestones=[3000, 5000], gamma=0.1)
 
 trainer = Trainer(
     model=model,

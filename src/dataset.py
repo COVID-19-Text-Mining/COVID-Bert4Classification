@@ -20,7 +20,7 @@ class PaperDataset(Dataset):
         text = []
         mask = []
 
-        roberta_tokenizer = RobertaTokenizer.from_pretrained(PRETRAINED_MODEL)
+        roberta_tokenizer = RobertaTokenizer.from_pretrained(PRETRAINED_MODEL, mirror="tuna")
 
         for paper in tqdm(papers, desc="Preparing dataset"):
             abstract_text = paper["abstract"]
