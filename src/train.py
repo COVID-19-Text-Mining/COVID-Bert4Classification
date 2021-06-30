@@ -5,7 +5,8 @@ Training scripts
 from sklearn.metrics import hamming_loss, label_ranking_loss, label_ranking_average_precision_score
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import random_split
-from transformers import TrainingArguments, IntervalStrategy, EvalPrediction, Trainer, AdamW
+from transformers import TrainingArguments, IntervalStrategy, EvalPrediction, Trainer, AdamW, \
+    get_cosine_schedule_with_warmup
 
 from config import CATS, PRETRAINED_MODEL
 from dataset import PaperDataset
@@ -32,7 +33,7 @@ training_args = TrainingArguments(
     eval_accumulation_steps=4,
     learning_rate=1e-4,
     num_train_epochs=8,
-    warmup_steps=2000,
+    warmup_steps=3000,
     metric_for_best_model="hamming_loss",
     greater_is_better=False,
     save_strategy=IntervalStrategy.EPOCH,
@@ -67,7 +68,13 @@ optimizer = AdamW(
     model.parameters(),
     lr=training_args.learning_rate,
 )
-scheduler = MultiStepLR(optimizer, milestones=[3000, 5000], gamma=0.1)
+scheduler = get_cosine_schedule_with_warmup(
+    optimizer=optimizer,
+    num_warmup_steps=training_args.warmup_steps,
+    num_training_steps=(len(training_set) * training_args.num_train_epochs) //
+    (training_args.per_device_train_batch_size * training_args.n_gpu) -
+    training_args.warmup_steps + 10,
+)
 
 trainer = Trainer(
     model=model,
