@@ -3,14 +3,13 @@ Training scripts
 """
 
 from sklearn.metrics import hamming_loss, label_ranking_loss, label_ranking_average_precision_score
-from torch.optim import Adam
-from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import random_split
-from transformers import TrainingArguments, IntervalStrategy, SchedulerType, EvalPrediction, Trainer
+from transformers import TrainingArguments, IntervalStrategy, EvalPrediction, Trainer, Adafactor
+from transformers.optimization import AdafactorSchedule
 
+from config import CATS, PRETRAINED_MODEL
 from dataset import PaperDataset
 from model import RobertaMultiLabelModel
-from config import CATS, PRETRAINED_MODEL
 from utils import sigmoid
 
 model = RobertaMultiLabelModel.from_pretrained(
@@ -24,15 +23,17 @@ training_args = TrainingArguments(
     overwrite_output_dir=True,
     do_train=True,
     do_eval=True,
+    do_predict=False,
     evaluation_strategy=IntervalStrategy.EPOCH,
     per_device_train_batch_size=8,
     per_device_eval_batch_size=16,
     gradient_accumulation_steps=4,
     eval_accumulation_steps=4,
     learning_rate=1e-4,
-    num_train_epochs=8,
-    lr_scheduler_type=SchedulerType.LINEAR,
-    warmup_steps=2000,
+    num_train_epochs=16,
+    warmup_steps=3000,
+    metric_for_best_model="hamming_loss",
+    greater_is_better=False,
     save_strategy=IntervalStrategy.EPOCH,
     no_cuda=False,
     fp16=False,
@@ -40,7 +41,7 @@ training_args = TrainingArguments(
     logging_strategy=IntervalStrategy.STEPS,
     logging_steps=10,
     report_to=["tensorboard"],
-    save_total_limit=5,
+    load_best_model_at_end=True
 )
 _dataset = PaperDataset.from_file("../rsc/training_set.json", cats=CATS)
 training_set, eval_set = random_split(
@@ -61,8 +62,14 @@ def compute_metrics(eval_prediction: EvalPrediction) -> dict:
     }
 
 
-optimizer = Adam(model.parameters(), training_args.learning_rate)
-scheduler = MultiStepLR(optimizer, [3000, 7000], gamma=0.1)
+optimizer = Adafactor(
+    model.parameters(),
+    scale_parameter=True,
+    relative_step=True,
+    warmup_init=True,
+    lr=None
+)
+scheduler = AdafactorSchedule(optimizer)
 
 trainer = Trainer(
     model=model,
@@ -73,6 +80,6 @@ trainer = Trainer(
     optimizers=(optimizer, scheduler),
 )
 
-
 if __name__ == '__main__':
     trainer.train()
+    trainer.save_model("../checkpoints/bst_model")
