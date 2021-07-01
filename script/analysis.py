@@ -1,7 +1,7 @@
 import json
 import numpy as np
 
-with open(r"../results/biomed_roberta-bce_loss-29_Jun/test_result.json", "r", encoding="utf-8") as f:
+with open(r"../results/test_result.json", "r", encoding="utf-8") as f:
     output = json.load(f)
 
 results = output["results"]
@@ -24,10 +24,12 @@ label_count = labels.astype(np.float32).sum(axis=0)
 
 missing /= missing.sum()
 extra /= extra.sum()
-total /= total.sum()
+# total /= total.sum()
 label_count /= label_count.sum()
 ratio = 1 / label_count
 ratio /= ratio.sum()
+
+print(np.count_nonzero(total.sum(axis=1)))
 
 cats = output["cats"]
 print("-" * 72)

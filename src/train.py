@@ -73,7 +73,7 @@ scheduler = get_cosine_schedule_with_warmup(
     num_training_steps=(len(training_set) * training_args.num_train_epochs) //
                        (training_args.per_device_train_batch_size * training_args.n_gpu *
                         training_args.gradient_accumulation_steps) -
-                       training_args.warmup_steps + training_args.num_train_epochs,
+                       training_args.warmup_steps + 1000,
 )
 
 trainer = Trainer(

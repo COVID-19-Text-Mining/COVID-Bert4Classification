@@ -6,6 +6,51 @@ import torch.nn as nn
 from transformers import RobertaModel, RobertaPreTrainedModel
 
 
+class AsymmetricLoss(nn.Module):
+    def __init__(self, gamma_neg=4, gamma_pos=1, clip=0.05, eps=1e-8):
+        super(AsymmetricLoss, self).__init__()
+
+        self.gamma_neg = gamma_neg
+        self.gamma_pos = gamma_pos
+        self.clip = clip
+        self.eps = eps
+
+    def forward(self, x, y):
+        """"
+        Parameters
+        ----------
+        x: input logits
+        y: targets (multi-label binarized vector)
+        """
+
+        # Calculating Probabilities
+        x_sigmoid = torch.sigmoid(x)
+        xs_pos = x_sigmoid
+        xs_neg = 1 - x_sigmoid
+
+        # Asymmetric Clipping
+        if self.clip is not None and self.clip > 0:
+            xs_neg = (xs_neg + self.clip).clamp(max=1)
+
+        # Basic CE calculation
+        los_pos = y * torch.log(xs_pos.clamp(min=self.eps))
+        los_neg = (1 - y) * torch.log(xs_neg.clamp(min=self.eps))
+        loss = los_pos + los_neg
+
+        # Asymmetric Focusing
+        if self.gamma_neg > 0 or self.gamma_pos > 0:
+
+            pt0 = xs_pos * y
+            pt1 = xs_neg * (1 - y)  # pt = p if t > 0 else 1-p
+            pt = pt0 + pt1
+            one_sided_gamma = self.gamma_pos * y + self.gamma_neg * (1 - y)
+            one_sided_w = torch.pow(1 - pt, one_sided_gamma)
+
+            loss *= one_sided_w
+
+        return - loss.mean()
+
+
 class RobertaMultiLabelModel(RobertaPreTrainedModel):
     """
     Roberta followed by a linear classifier
@@ -24,16 +69,18 @@ class RobertaMultiLabelModel(RobertaPreTrainedModel):
             config.hidden_size, self.num_labels
         )
 
-        self.loss_ftc = nn.BCEWithLogitsLoss(
-            pos_weight=torch.tensor(
-                [1.4067919254302979, 1.2223843336105347, 1.0514204502105713, 0.6244935393333435,
-                 1.0210953950881958, 0.8654600381851196, 1.2361549139022827]
-            ),
-            weight=torch.tensor(
-                [1.0690486431121826, 0.2334759533405304, 0.18737506866455078, 0.33329978585243225,
-                 2.0128180980682373, 2.6837575435638428, 0.48022496700286865]
-            )
-        )
+        self.loss_ftc = AsymmetricLoss(gamma_neg=3, gamma_pos=1, clip=0.1)
+
+        # self.loss_ftc = nn.BCEWithLogitsLoss(
+        #     pos_weight=torch.tensor(
+        #         [1.4067919254302979, 1.2223843336105347, 1.0514204502105713, 0.6244935393333435,
+        #          1.0210953950881958, 0.8654600381851196, 1.2361549139022827]
+        #     ),
+        #     weight=torch.tensor(
+        #         [1.0690486431121826, 0.2334759533405304, 0.18737506866455078, 0.33329978585243225,
+        #          2.0128180980682373, 2.6837575435638428, 0.48022496700286865]
+        #     )
+        # )
 
     def forward(
             self,
