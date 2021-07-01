@@ -29,7 +29,7 @@ label_count /= label_count.sum()
 ratio = 1 / label_count
 ratio /= ratio.sum()
 
-print(np.count_nonzero(total.sum(axis=1)))
+print(np.count_nonzero(difference.sum(axis=1)))
 
 cats = output["cats"]
 print("-" * 72)
