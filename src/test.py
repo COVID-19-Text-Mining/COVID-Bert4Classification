@@ -37,7 +37,7 @@ if __name__ == '__main__':
         "results": results,
     }
 
-    output_html = results2html(output=output, cats=CATS)
+    output_html = results2html(output=output)
 
     with open(r"../results/test_result.json", "w", encoding="utf-8") as f:
         json.dump(output, f, indent=1)
