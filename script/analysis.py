@@ -1,7 +1,11 @@
 import json
 import numpy as np
+from sklearn.metrics import hamming_loss, label_ranking_loss, label_ranking_average_precision_score
+import sys
+sys.path.append("../src")
+from utils import sigmoid
 
-with open(r"../results/test_result.json", "r", encoding="utf-8") as f:
+with open(r"../results/biomed_roberta-bp_mll_loss-adamw-1_July/test_result.json", "r", encoding="utf-8") as f:
     output = json.load(f)
 
 results = output["results"]
@@ -14,6 +18,7 @@ for result in results:
 
 logits = np.array(logits)
 labels = np.array(labels).astype(int)
+probs = sigmoid(logits)
 predictions = (logits > 0.).astype(int)
 
 difference = labels - predictions
@@ -30,6 +35,8 @@ ratio = 1 / label_count
 ratio /= ratio.sum()
 
 print(np.count_nonzero(difference.sum(axis=1)))
+print((ratio * 7.).tolist())
+print((missing/extra).tolist())
 
 cats = output["cats"]
 print("-" * 72)
@@ -40,5 +47,7 @@ for i in range(7):
 print("-" * 72)
 print(f"{'All': <24} {missing.sum(): <8.2f} {extra.sum(): <8.2f} {total.sum(): <8.2f} {label_count.sum(): <16.2f} {ratio.sum(): <8.2f}")
 print("-" * 72)
-print((ratio * 7.).tolist())
-print((missing/extra).tolist())
+print("\nMetrics:")
+print(f"{'Hamming Loss:': <32} {hamming_loss(labels, predictions): <12.8f}")
+print(f"{'Ranking Loss:': <32} {label_ranking_loss(labels, probs): <12.8f}")
+print(f"{'Ranking Average Precision:': <32} {label_ranking_average_precision_score(labels, probs): <12.8f}")
