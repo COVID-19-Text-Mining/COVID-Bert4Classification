@@ -5,7 +5,7 @@ import sys
 sys.path.append("../src")
 from utils import sigmoid
 
-with open(r"../results/biomed_roberta-bp_mll_loss-adamw-1_July/test_result.json", "r", encoding="utf-8") as f:
+with open(r"../results/biomed_roberta-bce_loss_with_weight-adamw-30_Jun/test_result.json", "r", encoding="utf-8") as f:
     output = json.load(f)
 
 results = output["results"]
@@ -48,6 +48,7 @@ print("-" * 72)
 print(f"{'All': <24} {missing.sum(): <8.2f} {extra.sum(): <8.2f} {total.sum(): <8.2f} {label_count.sum(): <16.2f} {ratio.sum(): <8.2f}")
 print("-" * 72)
 print("\nMetrics:")
+print(f"{'Accuracy:': <32} {np.count_nonzero(difference.sum(axis=1)) / len(difference): <12.8f}")
 print(f"{'Hamming Loss:': <32} {hamming_loss(labels, predictions): <12.8f}")
 print(f"{'Ranking Loss:': <32} {label_ranking_loss(labels, probs): <12.8f}")
 print(f"{'Ranking Average Precision:': <32} {label_ranking_average_precision_score(labels, probs): <12.8f}")

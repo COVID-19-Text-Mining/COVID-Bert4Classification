@@ -13,7 +13,6 @@ from utils import results2html
 
 model = RobertaMultiLabelModel.from_pretrained(
     "../checkpoints/bst_model",
-    dropout_prob=0.1,
 )
 test_set = PaperDataset.from_file("../rsc/test_set.json", cats=CATS)
 

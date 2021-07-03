@@ -15,7 +15,6 @@ from utils import sigmoid
 model = RobertaMultiLabelModel.from_pretrained(
     PRETRAINED_MODEL,
     num_labels=len(CATS),
-    dropout_prob=0.1,
     id2label={i: name for i, name in enumerate(CATS)},
     mirror="tuna",
 )
