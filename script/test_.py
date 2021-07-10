@@ -6,19 +6,13 @@ import json
 
 from transformers import Trainer
 
-from config import CATS, PRETRAINED_MODEL
-from dataset import PaperDataset
-from model import RobertaMultiLabelModel
-from utils import results2html
+from modeling_multi_label.config import CATS, PRETRAINED_MODEL
+from modeling_multi_label.dataset import InMemoryPaperDataset
+from modeling_multi_label.model import MultiLabelModel
+from modeling_multi_label.utils import results2html
 
-model = RobertaMultiLabelModel.from_pretrained(
-    "../checkpoints/bst_model",
-)
-test_set = PaperDataset.from_file("../rsc/test_set.json", cats=CATS)
 
-trainer = Trainer(model=model)
-
-if __name__ == '__main__':
+def test(trainer: Trainer, test_set):
     pred = trainer.predict(test_set)
     logits = pred.predictions.tolist()
     results = []
@@ -27,7 +21,7 @@ if __name__ == '__main__':
             "logits": logit,
             "labels": data["labels"].tolist(),
             "text": data["text"],
-            **test_set.metadata[i],
+            **data["misc"],
         })
 
     output = {
@@ -43,3 +37,14 @@ if __name__ == '__main__':
 
     with open(r"../results/test_result.html", "w", encoding="utf-8") as f:
         f.write(output_html)
+
+
+if __name__ == '__main__':
+    model = MultiLabelModel.from_pretrained(
+        "../bst_model",
+    )
+    _test_set = InMemoryPaperDataset.from_file("../rsc/test_set.json", text_key="abstract", label_key="label")
+
+    _trainer = Trainer(model=model)
+    test(trainer=_trainer, test_set=_test_set)
+    exec(open(r"./analysis.py", encoding="utf-8").read())

@@ -25,5 +25,5 @@ All the models are tested on the same [dev set](https://ftp.ncbi.nlm.nih.gov/pub
 ## How to Train Locally
 ```shell
 bash install.sh
-cd src/ && python train.py
+cd modeling_multi_label/ && python train.py
 ```

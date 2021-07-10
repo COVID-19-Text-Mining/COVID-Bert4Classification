@@ -3,21 +3,15 @@ Training scripts
 """
 
 from sklearn.metrics import hamming_loss, label_ranking_loss, label_ranking_average_precision_score
-from torch.utils.data import random_split
 from transformers import TrainingArguments, IntervalStrategy, EvalPrediction, Trainer, AdamW, \
     get_cosine_schedule_with_warmup
 
-from config import CATS, PRETRAINED_MODEL
-from dataset import PaperDataset
-from model import RobertaMultiLabelModel
-from utils import sigmoid
+from modeling_multi_label.config import CATS, PRETRAINED_MODEL
+from modeling_multi_label.dataset import InMemoryPaperDataset
+from modeling_multi_label.model import MultiLabelModel
+from modeling_multi_label.utils import sigmoid
+from test_ import test
 
-model = RobertaMultiLabelModel.from_pretrained(
-    PRETRAINED_MODEL,
-    num_labels=len(CATS),
-    id2label={i: name for i, name in enumerate(CATS)},
-    mirror="tuna",
-)
 training_args = TrainingArguments(
     output_dir="../checkpoints/",
     overwrite_output_dir=True,
@@ -43,11 +37,23 @@ training_args = TrainingArguments(
     report_to=["tensorboard"],
     load_best_model_at_end=True
 )
-_dataset = PaperDataset.from_file("../rsc/training_set.json", cats=CATS)
-training_set, eval_set = random_split(
-    _dataset,
-    [len(_dataset) - int(len(_dataset) * 0.25), int(len(_dataset) * 0.25)]
+
+model = MultiLabelModel.from_pretrained(
+    PRETRAINED_MODEL,
+    num_labels=len(CATS),
+    id2label={i: name for i, name in enumerate(CATS)},
+    label2id={name: i for i, name in enumerate(CATS)},
+    mirror="tuna",
 )
+
+training_set = InMemoryPaperDataset.from_file("../rsc/training_set.json", text_key="abstract", label_key="label")
+eval_set = InMemoryPaperDataset.from_file("../rsc/test_set.json", text_key="abstract", label_key="label")
+
+
+# training_set, eval_set = random_split(
+#     _dataset,
+#     [len(_dataset) - int(len(_dataset) * 0.25), int(len(_dataset) * 0.25)]
+# )
 
 
 def compute_metrics(eval_prediction: EvalPrediction) -> dict:
@@ -85,4 +91,5 @@ trainer = Trainer(
 
 if __name__ == '__main__':
     trainer.train()
-    trainer.save_model("../checkpoints/bst_model")
+    trainer.save_model("../bst_model")
+    test(trainer=trainer, test_set=eval_set)

@@ -1,9 +1,9 @@
 import json
+
 import numpy as np
 from sklearn.metrics import hamming_loss, label_ranking_loss, label_ranking_average_precision_score
-import sys
-sys.path.append("../src")
-from utils import sigmoid
+
+from modeling_multi_label.utils import sigmoid
 
 with open(r"../results/biomed_roberta-bce_loss_with_weight-adamw-30_Jun/test_result.json", "r", encoding="utf-8") as f:
     output = json.load(f)
@@ -36,16 +36,18 @@ ratio /= ratio.sum()
 
 print(np.count_nonzero(difference.sum(axis=1)))
 print((ratio * 7.).tolist())
-print((missing/extra).tolist())
+print((missing / extra).tolist())
 
 cats = output["cats"]
 print("-" * 72)
 print(f"{'Name': <24} {'missing': <8} {'extra': <8} {'total': <8} {'label_count': <16} {'ratio': <8}")
 print("-" * 72)
 for i in range(7):
-    print(f"{cats[i]: <24} {missing[i]: <8.2f} {extra[i]: <8.2f} {total[i]: <8.2f} {label_count[i]: <16.2f} {ratio[i]: <8.2f}")
+    print(
+        f"{cats[i]: <24} {missing[i]: <8.2f} {extra[i]: <8.2f} {total[i]: <8.2f} {label_count[i]: <16.2f} {ratio[i]: <8.2f}")
 print("-" * 72)
-print(f"{'All': <24} {missing.sum(): <8.2f} {extra.sum(): <8.2f} {total.sum(): <8.2f} {label_count.sum(): <16.2f} {ratio.sum(): <8.2f}")
+print(
+    f"{'All': <24} {missing.sum(): <8.2f} {extra.sum(): <8.2f} {total.sum(): <8.2f} {label_count.sum(): <16.2f} {ratio.sum(): <8.2f}")
 print("-" * 72)
 print("\nMetrics:")
 print(f"{'Accuracy:': <32} {np.count_nonzero(difference.sum(axis=1)) / len(difference): <12.8f}")

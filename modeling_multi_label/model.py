@@ -51,17 +51,17 @@ class AsymmetricLoss(nn.Module):
         return - loss.mean()
 
 
-class RobertaMultiLabelModel(RobertaPreTrainedModel):
+class MultiLabelModel(RobertaPreTrainedModel):
     """
     Roberta followed by a linear classifier
     """
 
     def __init__(self, config):
-        super(RobertaMultiLabelModel, self).__init__(config)
+        super(MultiLabelModel, self).__init__(config)
 
         self.num_labels = config.num_labels
 
-        self.roberta = RobertaModel(config)
+        self.pretrained_lm = RobertaModel(config)
         self.dropout = nn.Dropout(
             config.hidden_dropout_prob
         )
@@ -73,24 +73,24 @@ class RobertaMultiLabelModel(RobertaPreTrainedModel):
             pos_weight=torch.tensor(
                 [1.4067919254302979, 1.2223843336105347, 1.0514204502105713, 0.6244935393333435,
                  1.0210953950881958, 0.8654600381851196, 1.2361549139022827]
-            ),
+            ) ** 0.8,
             weight=torch.tensor(
                 [1.0690486431121826, 0.2334759533405304, 0.18737506866455078, 0.33329978585243225,
                  2.0128180980682373, 2.6837575435638428, 0.48022496700286865]
-            )
+            ) ** 0.9,
         )
 
     def forward(
             self,
             input_ids,
-            labels=None,
+            label_ids=None,
             attention_mask=None,
             token_type_ids=None,
             position_ids=None,
             head_mask=None,
             inputs_embeds=None,
     ):
-        output = self.roberta(
+        output = self.pretrained_lm(
             input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
@@ -102,8 +102,8 @@ class RobertaMultiLabelModel(RobertaPreTrainedModel):
         output = self.dropout(output)
         logits = self.classifier(output)
 
-        if labels is not None:
-            loss = self.loss_ftc(logits, labels)
+        if label_ids is not None:
+            loss = self.loss_ftc(logits, label_ids)
         else:
             loss = None
 
