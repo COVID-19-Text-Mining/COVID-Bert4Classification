@@ -4,7 +4,7 @@ Predicting scripts
 
 import json
 
-from transformers import Trainer
+from transformers import Trainer, TrainingArguments
 
 from modeling_multi_label.config import CATS, PRETRAINED_MODEL
 from modeling_multi_label.dataset import InMemoryPaperDataset
@@ -19,9 +19,9 @@ def test(trainer: Trainer, test_set):
     for i, (logit, data) in enumerate(zip(logits, test_set)):
         results.append({
             "logits": logit,
-            "labels": data["labels"].tolist(),
+            "labels": data["label_ids"].tolist(),
             "text": data["text"],
-            **data["misc"],
+            **test_set.papers[i],
         })
 
     output = {
@@ -44,7 +44,16 @@ if __name__ == '__main__':
         "../bst_model",
     )
     _test_set = InMemoryPaperDataset.from_file("../rsc/test_set.json", text_key="abstract", label_key="label")
+    training_args = TrainingArguments(
+        output_dir="../checkpoints/",
+        overwrite_output_dir=False,
+        do_train=False,
+        do_eval=False,
+        do_predict=True,
+        per_device_eval_batch_size=8,
+        no_cuda=False,
+    )
 
-    _trainer = Trainer(model=model)
+    _trainer = Trainer(model=model, args=training_args)
     test(trainer=_trainer, test_set=_test_set)
     exec(open(r"./analysis.py", encoding="utf-8").read())

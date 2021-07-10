@@ -59,8 +59,8 @@ class BasePaperDataset:
         )
 
         return {
-            "input_ids": output["input_ids"],
-            "attention_mask": output["attention_mask"],
+            "input_ids": output["input_ids"].squeeze(0),
+            "attention_mask": output["attention_mask"].squeeze(0),
             "text": paper[self.text_key],
             "label_ids": label,
         }

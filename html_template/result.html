@@ -187,7 +187,7 @@
 
             <div class="keywords-container">
                 <b class="name">Keywords</b>:
-                {% for keyword in paper.keywords -%}
+                {% for keyword in paper.keywords.split(';') -%}
                     <span class="keyword">{{ keyword }}</span>
                     {% if not loop.last -%}
                         {{ ", "}}
