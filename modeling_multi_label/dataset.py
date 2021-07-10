@@ -67,6 +67,13 @@ class BasePaperDataset:
 
 
 class InMemoryPaperDataset(Dataset, BasePaperDataset):
+    """
+    Used for training and test
+
+    Stores all the papers in a Python list object (`self.dataset`)
+    """
+    papers: List[Dict[str, Any]]
+
     def __init__(
             self,
             papers: List[Dict[str, Any]],
@@ -105,9 +112,20 @@ class InMemoryPaperDataset(Dataset, BasePaperDataset):
 
 
 class IterablePaperDataset(IterableDataset, BasePaperDataset):
+    """
+    Used for handling MongoDB cursor
+
+    use internal ObjectId (_id) to identify all the papers
+
+    If the paper contains no valid characters (\\w in regexp),
+        it will be skipped automatically
+    """
     papers: Iterable[Dict[str, Any]]
 
     def __iter__(self):
         for paper in self.papers:
             if re.sub(r"\W", "", paper[self.text_key]):
-                yield self._process(paper)
+                data = self._process(paper)
+                if "_id" in paper:
+                    data["_id"] = paper["_id"]
+                yield data

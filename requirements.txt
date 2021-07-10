@@ -6,3 +6,4 @@ torch >= 1.7.0
 numpy~=1.21.0
 pymongo~=3.11.4
 tqdm~=4.61.1
+dnspython

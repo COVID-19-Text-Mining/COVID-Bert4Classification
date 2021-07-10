@@ -43,12 +43,14 @@ def _data_collator(features: List[Dict[str, Any]]) -> Dict[str, Union[torch.Tens
     """
     Preserve the papers' ObjectId during batching
     """
-    batch = default_data_collator(features=features)
     first = features[0]
-
     if "_id" in first:
-        batch["_ids"] = [f["_id"] for f in features]
+        ids = [f.pop("_id") for f in features]
+    else:
+        ids = None
 
+    batch = default_data_collator(features=features)
+    batch["_ids"] = ids
     return batch
 
 
@@ -58,10 +60,10 @@ class DBTrainer(Trainer):
     """
 
     @staticmethod
-    def write_to_db(inputs: Dict[str, Union[torch.Tensor, Any]],
-                    outputs: Tuple[Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor]],
+    def write_to_db(ids: List[ObjectId],
+                    logits: torch.Tensor,
                     id2label: Dict[int, str]):
-        for _id, logit in zip(inputs["_ids"], outputs[1]):
+        for _id, logit in zip(ids, logits):
             prob = torch.sigmoid(logit)
             categories = {}
             for label_id, label in id2label.items():
@@ -75,10 +77,11 @@ class DBTrainer(Trainer):
             prediction_loss_only: bool,
             ignore_keys: Optional[List[str]] = None,
     ) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor]]:
+        ids = inputs.pop("_ids")
         outputs = super(DBTrainer, self).prediction_step(model=model, inputs=inputs,
                                                          prediction_loss_only=prediction_loss_only,
                                                          ignore_keys=ignore_keys)
-        self.write_to_db(inputs=inputs, outputs=outputs, id2label=model.config.id2label)
+        self.write_to_db(ids=ids, logits=outputs[1], id2label=model.config.id2label)
         return outputs
 
 
