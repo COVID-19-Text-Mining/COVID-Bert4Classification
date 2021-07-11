@@ -13,7 +13,7 @@ from modeling_multi_label.utils import sigmoid, data_dir, root_dir
 from test_ import test
 
 training_args = TrainingArguments(
-    output_dir="../checkpoints/",
+    output_dir=root_dir("checkpoints"),
     overwrite_output_dir=True,
     do_train=True,
     do_eval=True,
@@ -46,8 +46,8 @@ model = MultiLabelModel.from_pretrained(
     mirror=USE_MIRROR,
 )
 
-training_set = InMemoryPaperDataset.from_file(data_dir("training_set.json"), text_key="abstract", label_key="label")
-eval_set = InMemoryPaperDataset.from_file(data_dir("test_set.json"), text_key="abstract", label_key="label")
+training_set = InMemoryPaperDataset.from_file(data_dir("training_set.json"))
+eval_set = InMemoryPaperDataset.from_file(data_dir("test_set.json"))
 
 
 # training_set, eval_set = random_split(

@@ -45,8 +45,6 @@ if __name__ == '__main__':
     )
     _test_set = InMemoryPaperDataset.from_file(
         root_dir(r"rsc", "test_set.json"),
-        text_key="abstract",
-        label_key="label"
     )
     training_args = TrainingArguments(
         output_dir=root_dir("checkpoints"),

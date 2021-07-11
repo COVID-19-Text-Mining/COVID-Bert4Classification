@@ -121,4 +121,4 @@ if __name__ == '__main__':
     )
     trainer = DBTrainer(model=_model, args=training_args, data_collator=_data_collator)
 
-    pred = trainer.predict(IterablePaperDataset(papers, text_key="abstract", label_key=None))
+    pred = trainer.predict(IterablePaperDataset(papers))
