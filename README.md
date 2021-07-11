@@ -11,7 +11,7 @@ Default Training Set: 24960 manually reviewed abstracts from LitCOVID
 ## Result on Test Set
 All the models are tested on the same [dev set](https://ftp.ncbi.nlm.nih.gov/pub/lu/LitCovid/biocreative/BC7-LitCovid-Dev.csv) provided by LitCOVID.
 
-| Trial Name | Hamming Loss | Ranking Loss | Label Ranking Average Precision | Error Rate<sup>**</sup> |Result Links|
+| Trial Name | Hamming Loss | Ranking Loss | Label Ranking Average Precision | Error Rate<sup>*</sup> |Result Links|
 | :-------  |      :------:     |     :-----:      |    :------:           | :---:| :----:|
 |Old Version (SciBert, 200+ annotated abstracts as training set)|0.114|0.118|0.818|0.410|[1](results/scibert-bce_loss-adamw-small_dataset-2_July)|
 |[BP MLL Loss](https://ieeexplore.ieee.org/document/1683770)|0.104|0.0203|0.962|0.553|[2](results/biomed_roberta-bp_mll_loss-adamw-1_July)|
@@ -20,7 +20,7 @@ All the models are tested on the same [dev set](https://ftp.ncbi.nlm.nih.gov/pub
 | Weighted BCE Loss | 0.0428 | 0.0232 | 0.958 |0.188|[5](results/biomed_roberta-bce_loss_with_weight-adamw-30_Jun)|
 | Abstract + Title | **0.0386** | **0.0190** | **0.966** | **0.172** | [6](results/biomed_roberta-bce_loss_with_weight-adamw-full-has_title-11_July) |
 ---
-** Error rate is the ratio of wrongly-predicted entries (the predicted labels are not exactly the same as the true labels) against the whole test set.
+\* Error rate is the ratio of wrongly-predicted entries (the predicted labels are not exactly the same as the true labels) against the whole test set.
 
 ## Deployment
 ### Deploy with docker
@@ -28,7 +28,7 @@ We use docker to deploy our classification model. As the model has not been made
 ```shell
 # Download trained weights
 wget https://www.ocf.berkeley.edu/~yuxingfei/models/model.tar.gz \
-  && tar -zxvf model.tar.gz
+  && tar -zxvf model.tar.gz && rm model.tar.gz
 
 # Build docker container (CPU version)
 docker build . -t idocx/multilabel-classifier-cpu \
@@ -46,18 +46,20 @@ To use our model to make predictions, run
 ## to database
 
 # CPU version
-docker run --rm idocx/multilabel-classifier-cpu \
+docker run --rm \
   -e COVID_HOST=$COVID_HOST \
   -e COVID_USER=$COVID_USER \
   -e COVID_PASS=$COVID_PASS \
-  -e COVID_DB=$COVID_DB
+  -e COVID_DB=$COVID_DB \
+  idocx/multilabel-classifier-cpu
   
 # GPU version
-docker run --rm --gpus all idocx/multilabel-classifier-gpu \
+docker run --rm --gpus all \
   -e COVID_HOST=$COVID_HOST \
   -e COVID_USER=$COVID_USER \
   -e COVID_PASS=$COVID_PASS \
-  -e COVID_DB=$COVID_DB
+  -e COVID_DB=$COVID_DB \
+  idocx/multilabel-classifier-gpu
 ```
 
 ### Deploy directly

@@ -28,7 +28,7 @@ try:
     db = client[os.getenv("COVID_DB")]
 except TypeError as e:
     e.args = (e.args[0] + ". Hint: maybe you forget to set all of the following environment variables: "
-                          "['COVID_HOST', 'COVID_USER', 'COVID_PASS', 'COVID_DB']?",)
+                          "['COVID_HOST', 'COVID_USER', 'COVID_PASS', 'COVID_DB']?",) + e.args[1:]
     raise
 
 collection = db["entries2"]
@@ -101,7 +101,6 @@ if __name__ == '__main__':
     _model = MultiLabelModel.from_pretrained(
         root_dir("bst_model"),
     )
-
 
     # papers = collection.aggregate([
     #     {"$project": {"_id": 1, "abstract": 1, "title": 1}},
