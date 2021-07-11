@@ -10,3 +10,4 @@ requirements.txt
 checkpoints/
 .idea/
 Dockerfile
+model.tar.gz

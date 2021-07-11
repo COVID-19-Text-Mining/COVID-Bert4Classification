@@ -22,8 +22,48 @@ All the models are tested on the same [dev set](https://ftp.ncbi.nlm.nih.gov/pub
 ---
 ** Error rate is the ratio of wrongly-predicted entries (the predicted labels are not exactly the same as the true labels) against the whole test set.
 
-## How to Train Locally
+## Deployment
+### Deploy with docker
+We use docker to deploy our classification model. As the model has not been made public, we have to build container from `Dockerfile` instead of pulling directly from DockerHub.
 ```shell
-bash install.sh
-cd modeling_multi_label/ && python train.py
+# Download trained weights
+wget https://www.ocf.berkeley.edu/~yuxingfei/models/model.tar.gz \
+  && tar -zxvf model.tar.gz
+
+# Build docker container (CPU version)
+docker build . -t idocx/multilabel-classifier-cpu \
+  --build-arg DEVICE=cpu
+
+# Build docker container (GPU version)
+docker build . -t idocx/multilabel-classifier-gpu \
+  --build-arg DEVICE=gpu
+```
+
+To use our model to make predictions, run
+```shell
+## This script will read new documents from MongoDB, 
+## make predictions and write the predicted categories
+## to database
+
+# CPU version
+docker run --rm idocx/multilabel-classifier-cpu \
+  -e COVID_HOST=$COVID_HOST \
+  -e COVID_USER=$COVID_USER \
+  -e COVID_PASS=$COVID_PASS \
+  -e COVID_DB=$COVID_DB
+  
+# GPU version
+docker run --rm --gpus all idocx/multilabel-classifier-gpu \
+  -e COVID_HOST=$COVID_HOST \
+  -e COVID_USER=$COVID_USER \
+  -e COVID_PASS=$COVID_PASS \
+  -e COVID_DB=$COVID_DB
+```
+
+### Deploy directly
+```shell
+pip install -r requirements.txt
+
+# remember to set DB env variable before runing the script
+PYTHONPATH=$PYTHONPATH:$(pwd) && python script/upadte_db.py
 ```

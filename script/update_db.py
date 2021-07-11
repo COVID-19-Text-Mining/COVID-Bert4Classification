@@ -1,7 +1,7 @@
-import argparse
 import datetime
 import hashlib
 import logging
+import os
 from typing import List, Any, Dict, Union, Optional, Tuple
 
 import pymongo
@@ -18,19 +18,19 @@ from modeling_multi_label.utils import root_dir
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s -- %(message)s")
 logger = logging.getLogger(__name__)
 
-# handle cli options
-parser = argparse.ArgumentParser()
-parser.add_argument("--mongo-url", help="The URL of the target db.",
-                    default=argparse.SUPPRESS, type=str)
-parser.add_argument("--mongo-db", help="The name of the database where all the papers are stored.",
-                    required=True, type=str)
-args = parser.parse_args()
+try:
+    client = pymongo.MongoClient(
+        os.getenv("COVID_HOST"),
+        username=os.getenv("COVID_USER"),
+        password=os.getenv("COVID_PASS"),
+        authSource=os.getenv("COVID_DB")
+    )
+    db = client[os.getenv("COVID_DB")]
+except TypeError as e:
+    e.args = (e.args[0] + ". Hint: maybe you forget to set all of the following environment variables: "
+                          "['COVID_HOST', 'COVID_USER', 'COVID_PASS', 'COVID_DB']?",)
+    raise
 
-# initialize MongoDB connection
-client = pymongo.MongoClient(
-    args.mongo_url,
-)
-db = client[args.mongo_db]
 collection = db["entries2"]
 output_collection = db["entries_categories_ml"]
 
@@ -102,6 +102,7 @@ if __name__ == '__main__':
         root_dir("bst_model"),
     )
 
+
     # papers = collection.aggregate([
     #     {"$project": {"_id": 1, "abstract": 1, "title": 1}},
     #     {"$lookup": {"from": output_collection.name, "localField": "_id",
@@ -115,6 +116,7 @@ if __name__ == '__main__':
             if output_collection.find_one({"_id": paper["_id"]}):
                 continue
             yield paper
+
 
     training_args = TrainingArguments(
         output_dir="../checkpoints/",
