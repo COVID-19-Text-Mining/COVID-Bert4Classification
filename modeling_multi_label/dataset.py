@@ -10,7 +10,7 @@ import torch
 from torch.utils.data import Dataset, IterableDataset
 from transformers import RobertaTokenizer
 
-from .config import PRETRAINED_MODEL, CATS
+from .config import PRETRAINED_MODEL, CATS, USE_MIRROR
 
 
 class BasePaperDataset:
@@ -31,7 +31,7 @@ class BasePaperDataset:
         self.text_key = text_key
         self.label_key = label_key
 
-        self.tokenizer = RobertaTokenizer.from_pretrained(PRETRAINED_MODEL, mirror="tuna")
+        self.tokenizer = RobertaTokenizer.from_pretrained(PRETRAINED_MODEL, mirror=USE_MIRROR)
 
     def _process(self, paper: Dict[str, Any]) -> Dict[str, Union[str, torch.Tensor]]:
         text = paper[self.text_key]

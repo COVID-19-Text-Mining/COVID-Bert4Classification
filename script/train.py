@@ -6,10 +6,10 @@ from sklearn.metrics import hamming_loss, label_ranking_loss, label_ranking_aver
 from transformers import TrainingArguments, IntervalStrategy, EvalPrediction, Trainer, AdamW, \
     get_cosine_schedule_with_warmup
 
-from modeling_multi_label.config import CATS, PRETRAINED_MODEL
+from modeling_multi_label.config import CATS, PRETRAINED_MODEL, USE_MIRROR
 from modeling_multi_label.dataset import InMemoryPaperDataset
 from modeling_multi_label.model import MultiLabelModel
-from modeling_multi_label.utils import sigmoid
+from modeling_multi_label.utils import sigmoid, data_dir, root_dir
 from test_ import test
 
 training_args = TrainingArguments(
@@ -43,11 +43,11 @@ model = MultiLabelModel.from_pretrained(
     num_labels=len(CATS),
     id2label={i: name for i, name in enumerate(CATS)},
     label2id={name: i for i, name in enumerate(CATS)},
-    mirror="tuna",
+    mirror=USE_MIRROR,
 )
 
-training_set = InMemoryPaperDataset.from_file("../rsc/training_set.json", text_key="abstract", label_key="label")
-eval_set = InMemoryPaperDataset.from_file("../rsc/test_set.json", text_key="abstract", label_key="label")
+training_set = InMemoryPaperDataset.from_file(data_dir("training_set.json"), text_key="abstract", label_key="label")
+eval_set = InMemoryPaperDataset.from_file(data_dir("test_set.json"), text_key="abstract", label_key="label")
 
 
 # training_set, eval_set = random_split(
@@ -91,5 +91,5 @@ trainer = Trainer(
 
 if __name__ == '__main__':
     trainer.train()
-    trainer.save_model("../bst_model")
+    trainer.save_model(root_dir("bst_model"))
     test(trainer=trainer, test_set=eval_set)

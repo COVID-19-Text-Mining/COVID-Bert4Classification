@@ -1,4 +1,3 @@
-checkpoints/
 rsc/
 results/
 .gitignore
@@ -8,4 +7,6 @@ README.md
 html_template/
 __pycache__/
 requirements.txt
+checkpoints/
+.idea/
 Dockerfile

@@ -6,6 +6,7 @@ __pycache__/
 model/
 *.pth
 
+bst_model/
 checkpoints/
 rsc/
 

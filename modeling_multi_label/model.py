@@ -104,10 +104,11 @@ class MultiLabelModel(RobertaPreTrainedModel):
 
         if labels is not None:
             loss = self.loss_ftc(logits, labels)
+            return dict(
+                loss=loss,
+                logits=logits,
+            )
         else:
-            loss = None
-
-        return dict(
-            loss=loss,
-            logits=logits,
-        )
+            return dict(
+                logits=logits,
+            )

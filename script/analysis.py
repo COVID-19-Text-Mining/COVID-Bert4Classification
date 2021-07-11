@@ -3,9 +3,12 @@ import json
 import numpy as np
 from sklearn.metrics import hamming_loss, label_ranking_loss, label_ranking_average_precision_score
 
-from modeling_multi_label.utils import sigmoid
+from modeling_multi_label.utils import sigmoid, root_dir
 
-with open(r"../results/biomed_roberta-bce_loss_with_weight-adamw-30_Jun/test_result.json", "r", encoding="utf-8") as f:
+with open(
+        root_dir("results", "biomed_roberta-bce_loss_with_weight-adamw-30_Jun", "test_result.json"),
+        "r", encoding="utf-8"
+) as f:
     output = json.load(f)
 
 results = output["results"]

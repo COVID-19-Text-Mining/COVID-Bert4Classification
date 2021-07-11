@@ -13,3 +13,4 @@ CATS = (
 )
 
 PRETRAINED_MODEL = "allenai/biomed_roberta_base"
+USE_MIRROR = "tuna"  # to disable, set to None

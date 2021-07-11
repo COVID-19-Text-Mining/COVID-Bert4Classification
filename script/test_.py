@@ -9,7 +9,7 @@ from transformers import Trainer, TrainingArguments
 from modeling_multi_label.config import CATS, PRETRAINED_MODEL
 from modeling_multi_label.dataset import InMemoryPaperDataset
 from modeling_multi_label.model import MultiLabelModel
-from modeling_multi_label.utils import results2html
+from modeling_multi_label.utils import results2html, root_dir
 
 
 def test(trainer: Trainer, test_set):
@@ -32,20 +32,24 @@ def test(trainer: Trainer, test_set):
 
     output_html = results2html(output=output)
 
-    with open(r"../results/test_result.json", "w", encoding="utf-8") as f:
+    with open(root_dir("results", "test_result.json"), "w", encoding="utf-8") as f:
         json.dump(output, f, indent=1)
 
-    with open(r"../results/test_result.html", "w", encoding="utf-8") as f:
+    with open(root_dir("results", "test_result.html"), "w", encoding="utf-8") as f:
         f.write(output_html)
 
 
 if __name__ == '__main__':
     model = MultiLabelModel.from_pretrained(
-        "../bst_model",
+        root_dir("bst_model"),
     )
-    _test_set = InMemoryPaperDataset.from_file("../rsc/test_set.json", text_key="abstract", label_key="label")
+    _test_set = InMemoryPaperDataset.from_file(
+        root_dir(r"rsc", "test_set.json"),
+        text_key="abstract",
+        label_key="label"
+    )
     training_args = TrainingArguments(
-        output_dir="../checkpoints/",
+        output_dir=root_dir("checkpoints"),
         overwrite_output_dir=False,
         do_train=False,
         do_eval=False,
@@ -56,4 +60,4 @@ if __name__ == '__main__':
 
     _trainer = Trainer(model=model, args=training_args)
     test(trainer=_trainer, test_set=_test_set)
-    exec(open(r"./analysis.py", encoding="utf-8").read())
+    exec(open(root_dir("script", "analysis.py"), encoding="utf-8").read())
