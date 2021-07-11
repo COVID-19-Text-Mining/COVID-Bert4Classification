@@ -103,7 +103,7 @@ if __name__ == '__main__':
     )
 
     papers = collection.aggregate([
-        {"$project": {"_id": 1, "abstract": 1}},
+        {"$project": {"_id": 1, "abstract": 1, "title": 1}},
         {"$lookup": {"from": output_collection.name, "localField": "_id",
                      "foreignField": "_id", "as": "predictions"}},
         {"$match": {"predictions": []}},
