@@ -46,7 +46,7 @@ model = MultiLabelModel.from_pretrained(
     mirror=USE_MIRROR,
 )
 
-training_set = InMemoryPaperDataset.from_file(data_dir("training_set.json"))
+training_set = InMemoryPaperDataset.from_file(data_dir("training_set.json"), drop_abstract_prob=0.1)
 eval_set = InMemoryPaperDataset.from_file(data_dir("test_set.json"))
 
 

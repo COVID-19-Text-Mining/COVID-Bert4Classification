@@ -5,7 +5,7 @@ Dataset class to provide training data
 import json
 import random
 import re
-from typing import Dict, Any, List, Union, Iterable
+from typing import Dict, Any, List, Union, Iterable, Optional
 
 import torch
 from torch.utils.data import Dataset, IterableDataset
@@ -60,14 +60,21 @@ class BasePaperDataset:
         }
 
 
-class InMemoryPaperDataset(Dataset, BasePaperDataset):
+class InMemoryPaperDataset(BasePaperDataset, Dataset):
     """
     Used for training and test
     """
     papers: List[Dict[str, Any]]
 
+    def __init__(self, papers, drop_abstract_prob: Optional[float] = None):
+        super(InMemoryPaperDataset, self).__init__(papers=papers)
+        if not 0. <= drop_abstract_prob <= 1.:
+            raise ValueError("drop_abstract_prob should be 0 ~ 1.")
+        self.drop_abstract_prob = drop_abstract_prob
+
     def __getitem__(self, index):
-        if random.random() > 0.9:
+        if self.drop_abstract_prob is not None and \
+                random.random() <= self.drop_abstract_prob:
             paper = {**self.papers[index], "abstract": ""}
             return self._process(paper)
         return self._process(self.papers[index])
@@ -76,20 +83,21 @@ class InMemoryPaperDataset(Dataset, BasePaperDataset):
         return len(self.papers)
 
     @classmethod
-    def from_file(cls, path):
+    def from_file(cls, path, drop_abstract_prob: Optional[float] = None):
         """
         Load dataset from json file
 
         Args:
             path: the path to the json file
+            drop_abstract_prob: The prob of randomly setting abstract string to empty string
         """
         with open(path, "r", encoding="utf-8") as f:
             papers = json.load(f)
 
-        return cls(papers=papers)
+        return cls(papers=papers, drop_abstract_prob=drop_abstract_prob)
 
 
-class IterablePaperDataset(IterableDataset, BasePaperDataset):
+class IterablePaperDataset(BasePaperDataset, IterableDataset):
     """
     Used for handling MongoDB cursor
 
