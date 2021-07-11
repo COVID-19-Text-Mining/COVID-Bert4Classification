@@ -4,7 +4,7 @@ FROM huggingface/transformers-pytorch-${DEVICE}
 ENV PYTHONPATH=$PYTHONPATH:/multilabel_classifier
 WORKDIR /multilabel_classifier
 COPY . .
-ADD model.tar.gz ./
+COPY bst_model .
 
 RUN pip install pymongo dnspython
 

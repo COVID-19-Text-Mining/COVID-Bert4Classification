@@ -10,6 +10,8 @@ bst_model/
 checkpoints/
 rsc/
 
+model.tar.gz
+
 .idea/
 
 # C extensions

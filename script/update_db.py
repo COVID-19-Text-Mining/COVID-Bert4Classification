@@ -102,13 +102,19 @@ if __name__ == '__main__':
         root_dir("bst_model"),
     )
 
-    papers = collection.aggregate([
-        {"$project": {"_id": 1, "abstract": 1, "title": 1}},
-        {"$lookup": {"from": output_collection.name, "localField": "_id",
-                     "foreignField": "_id", "as": "predictions"}},
-        {"$match": {"predictions": []}},
-        {"$project": {"predictions": 0}},
-    ])
+    # papers = collection.aggregate([
+    #     {"$project": {"_id": 1, "abstract": 1, "title": 1}},
+    #     {"$lookup": {"from": output_collection.name, "localField": "_id",
+    #                  "foreignField": "_id", "as": "predictions"}},
+    #     {"$match": {"predictions": []}},
+    #     {"$project": {"predictions": 0}},
+    # ])
+
+    def papers():
+        for paper in collection.find({}, projection=["doi", "abstract", "title"]):
+            if output_collection.find_one({"_id": paper["_id"]}):
+                continue
+            yield paper
 
     training_args = TrainingArguments(
         output_dir="../checkpoints/",
@@ -121,4 +127,4 @@ if __name__ == '__main__':
     )
     trainer = DBTrainer(model=_model, args=training_args, data_collator=_data_collator)
 
-    pred = trainer.predict(IterablePaperDataset(papers))
+    pred = trainer.predict(IterablePaperDataset(papers()))

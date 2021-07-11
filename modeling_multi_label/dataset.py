@@ -68,7 +68,7 @@ class InMemoryPaperDataset(BasePaperDataset, Dataset):
 
     def __init__(self, papers, drop_abstract_prob: Optional[float] = None):
         super(InMemoryPaperDataset, self).__init__(papers=papers)
-        if not 0. <= drop_abstract_prob <= 1.:
+        if drop_abstract_prob is not None and not 0. <= drop_abstract_prob <= 1.:
             raise ValueError("drop_abstract_prob should be 0 ~ 1.")
         self.drop_abstract_prob = drop_abstract_prob
 
@@ -113,7 +113,9 @@ class IterablePaperDataset(BasePaperDataset, IterableDataset):
             title = paper.get("title", "")
             abstract = paper.get("abstract", "")
 
-            if (title or abstract) and re.sub(r"\W", "", paper["abstract"]):
+            if len(title.split(" ")) + len(abstract.split(" ")) >= 10 and \
+                    len(abstract.split(" ")) >= 4 and \
+                    re.sub(r"\W", "", paper["abstract"]):
                 data = self._process(paper)
                 if "_id" in paper:
                     data["_id"] = paper["_id"]
