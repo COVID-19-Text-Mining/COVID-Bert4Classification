@@ -28,7 +28,7 @@ def results2html(output):
                 return False
         return True
 
-    file_loader = jinja2.FileSystemLoader("../html_template/")
+    file_loader = jinja2.FileSystemLoader(root_dir("html_template"))
     env = jinja2.Environment(autoescape=True, loader=file_loader)
     env.filters["is_correct"] = is_correct
     cats = output["cats"]
