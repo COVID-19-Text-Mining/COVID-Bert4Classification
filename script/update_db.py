@@ -1,11 +1,9 @@
-import datetime
-import logging
-import sys
-sys.path.append(".")
-
 import argparse
-from typing import List, Any, Dict, Union, Optional, Tuple
+import datetime
 import hashlib
+import logging
+from typing import List, Any, Dict, Union, Optional, Tuple
+
 import pymongo
 import torch
 import transformers
