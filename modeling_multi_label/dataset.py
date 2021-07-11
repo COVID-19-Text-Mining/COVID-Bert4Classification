@@ -34,6 +34,7 @@ class BasePaperDataset:
         self.tokenizer = RobertaTokenizer.from_pretrained(PRETRAINED_MODEL, mirror=USE_MIRROR)
 
     def _process(self, paper: Dict[str, Any]) -> Dict[str, Union[str, torch.Tensor]]:
+        title = paper["title"]
         text = paper[self.text_key]
 
         if self.label_key is None:
@@ -47,12 +48,13 @@ class BasePaperDataset:
 
         output = self.tokenizer(
             text,
+            text_pair=title,
             add_special_tokens=True,
             padding="max_length",
             truncation="longest_first",
             return_tensors="pt",
             return_attention_mask=True,
-            return_token_type_ids=False,
+            return_token_type_ids=True,
             return_overflowing_tokens=False,
             return_special_tokens_mask=False,
             return_offsets_mapping=False,
@@ -61,6 +63,7 @@ class BasePaperDataset:
         return {
             "input_ids": output["input_ids"].squeeze(0),
             "attention_mask": output["attention_mask"].squeeze(0),
+            "token_type_ids": output["token_type_ids"].squeeze(0),
             "text": paper[self.text_key],
             "label_ids": label,
         }
