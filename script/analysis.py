@@ -6,7 +6,7 @@ from sklearn.metrics import hamming_loss, label_ranking_loss, label_ranking_aver
 from modeling_multi_label.utils import sigmoid, root_dir
 
 with open(
-        root_dir("results", "biomed_roberta-bce_loss_with_weight-adamw-30_Jun", "test_result.json"),
+        root_dir("results", "test_result.json"),
         "r", encoding="utf-8"
 ) as f:
     output = json.load(f)
