@@ -22,6 +22,13 @@ All the models are tested on the same [dev set](https://ftp.ncbi.nlm.nih.gov/pub
 ---
 \* Error rate is the ratio of wrongly-predicted entries (the predicted labels are not exactly the same as the true labels) against the whole test set.
 
+## Inference Acceleration
+All the test are run on the same PC (No CUDA).
+
+| Optimization Method | Time (sec, 100 papers) |
+| :---- | :---: |
+| Vanilla Model | 109.0 |
+
 ## Deployment
 ### Deploy with docker
 We use docker to deploy our classification model. As the model has not been made public, we have to build container from `Dockerfile` instead of pulling directly from DockerHub.
@@ -47,6 +54,7 @@ To use our model to make predictions, run
 
 # CPU version
 docker run --rm \
+  -n multilabel-classifier-cpu \
   -e COVID_HOST=$COVID_HOST \
   -e COVID_USER=$COVID_USER \
   -e COVID_PASS=$COVID_PASS \
@@ -55,6 +63,7 @@ docker run --rm \
   
 # GPU version
 docker run --rm --gpus all \
+  -n multilabel-classifier-gpu \
   -e COVID_HOST=$COVID_HOST \
   -e COVID_USER=$COVID_USER \
   -e COVID_PASS=$COVID_PASS \

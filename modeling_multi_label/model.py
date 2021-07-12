@@ -109,6 +109,4 @@ class MultiLabelModel(RobertaPreTrainedModel):
                 logits=logits,
             )
         else:
-            return dict(
-                logits=logits,
-            )
+            return logits

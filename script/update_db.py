@@ -15,6 +15,8 @@ from modeling_multi_label.dataset import IterablePaperDataset
 from modeling_multi_label.model import MultiLabelModel
 from modeling_multi_label.utils import root_dir
 
+DEBUG_MODE = True
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s -- %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -27,9 +29,13 @@ try:
     )
     db = client[os.getenv("COVID_DB")]
 except TypeError as e:
-    e.args = (e.args[0] + ". Hint: maybe you forget to set all of the following environment variables: "
-                          "['COVID_HOST', 'COVID_USER', 'COVID_PASS', 'COVID_DB']?",) + e.args[1:]
-    raise
+    if DEBUG_MODE:
+        client = pymongo.MongoClient()
+        db = client["LitCOVID"]
+    else:
+        e.args = (e.args[0] + ". Hint: maybe you forget to set all of the following environment variables: "
+                              "['COVID_HOST', 'COVID_USER', 'COVID_PASS', 'COVID_DB']?",) + e.args[1:]
+        raise
 
 collection = db["entries2"]
 output_collection = db["entries_categories_ml"]
@@ -76,10 +82,16 @@ class DBTrainer(Trainer):
                 "model_hash": model_hash,
             }}, upsert=True)
 
+            msg = {
+                "_id": _id,
+                "predicted_labels": [label for label_id, label in id2label.items() if logit[label_id] > 0.],
+            }
+
+            if DEBUG_MODE:
+                msg["true_labels"] = [k for k, v in collection.find_one({"_id": _id})["label"].items() if v]
+
             logger.info(
-                msg="{{#DB_ID: {_id}, LABELS: {labels}}}".format(
-                    _id=_id,
-                    labels=[label for label_id, label in id2label.items() if logit[label_id] > 0.])
+                msg=str(msg)
             )
 
     def prediction_step(
