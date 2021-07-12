@@ -12,7 +12,7 @@ from transformers import Trainer, TrainingArguments
 from transformers.data.data_collator import default_data_collator
 
 from modeling_multi_label.dataset import IterablePaperDataset
-from modeling_multi_label.model import MultiLabelModel
+from modeling_multi_label.model import MultiLabelModelWithLossFn
 from modeling_multi_label.utils import root_dir
 
 DEBUG_MODE = True
@@ -88,7 +88,8 @@ class DBTrainer(Trainer):
             }
 
             if DEBUG_MODE:
-                msg["true_labels"] = [k for k, v in collection.find_one({"_id": _id})["label"].items() if v]
+                msg["true_labels"] = [k for k, v in collection.find_one({"_id": _id}).get("label", {}).items() if v] \
+                                     or None
 
             logger.info(
                 msg=str(msg)
@@ -110,7 +111,7 @@ class DBTrainer(Trainer):
 
 
 if __name__ == '__main__':
-    _model = MultiLabelModel.from_pretrained(
+    _model = MultiLabelModelWithLossFn.from_pretrained(
         root_dir("bst_model"),
     )
 

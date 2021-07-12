@@ -1,9 +1,19 @@
 """
 Multi-label model
 """
+from dataclasses import dataclass
+from typing import Optional
+
 import torch
 import torch.nn as nn
 from transformers import RobertaModel, RobertaPreTrainedModel
+from transformers.modeling_outputs import ModelOutput
+
+
+@dataclass
+class MultiLabelOutput(ModelOutput):
+    loss: Optional[torch.Tensor] = None
+    logits: torch.Tensor = None
 
 
 class AsymmetricLoss(nn.Module):
@@ -52,10 +62,6 @@ class AsymmetricLoss(nn.Module):
 
 
 class MultiLabelModel(RobertaPreTrainedModel):
-    """
-    Roberta followed by a linear classifier
-    """
-
     def __init__(self, config):
         super(MultiLabelModel, self).__init__(config)
 
@@ -68,6 +74,38 @@ class MultiLabelModel(RobertaPreTrainedModel):
         self.classifier = nn.Linear(
             config.hidden_size, self.num_labels
         )
+
+    def forward(
+            self,
+            input_ids,
+            attention_mask=None,
+            token_type_ids=None,
+            position_ids=None,
+            head_mask=None,
+            inputs_embeds=None,
+    ):
+        output = self.roberta(
+            input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids,
+            position_ids=position_ids,
+            head_mask=head_mask,
+            inputs_embeds=inputs_embeds,
+        )[0][:, 0, :]  # the hidden state of <s>
+
+        output = self.dropout(output)
+        logits = self.classifier(output)
+
+        return logits
+
+
+class MultiLabelModelWithLossFn(MultiLabelModel):
+    """
+    Roberta followed by a linear classifier
+    """
+
+    def __init__(self, config):
+        super(MultiLabelModelWithLossFn, self).__init__(config)
 
         self.loss_ftc = nn.BCEWithLogitsLoss(
             pos_weight=torch.tensor(
@@ -90,23 +128,18 @@ class MultiLabelModel(RobertaPreTrainedModel):
             head_mask=None,
             inputs_embeds=None,
     ):
-        output = self.roberta(
-            input_ids,
+        logits = super(MultiLabelModelWithLossFn, self).forward(
+            input_ids=input_ids,
             attention_mask=attention_mask,
             token_type_ids=token_type_ids,
             position_ids=position_ids,
             head_mask=head_mask,
             inputs_embeds=inputs_embeds,
-        )[0][:, 0, :]  # the hidden state of <s>
-
-        output = self.dropout(output)
-        logits = self.classifier(output)
+        )
 
         if labels is not None:
+            labels = labels.float()
             loss = self.loss_ftc(logits, labels)
-            return dict(
-                loss=loss,
-                logits=logits,
-            )
+            return MultiLabelOutput(loss=loss, logits=logits)
         else:
-            return logits
+            return MultiLabelOutput(logits=logits)

@@ -27,8 +27,8 @@ All the test are run on the same PC (No CUDA).
 
 | Optimization Method | Time (sec, 100 papers) |
 | :---- | :---: |
-| Vanilla Model | 109.0 |
-
+| Vanilla Model | 113.5 |
+| ONNX optimized + Int8 Quantized | 91.6 |
 ## Deployment
 ### Deploy with docker
 We use docker to deploy our classification model. As the model has not been made public, we have to build container from `Dockerfile` instead of pulling directly from DockerHub.

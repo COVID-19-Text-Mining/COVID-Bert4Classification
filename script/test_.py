@@ -8,7 +8,7 @@ from transformers import Trainer, TrainingArguments
 
 from modeling_multi_label.config import CATS, PRETRAINED_MODEL
 from modeling_multi_label.dataset import InMemoryPaperDataset
-from modeling_multi_label.model import MultiLabelModel
+from modeling_multi_label.model import MultiLabelModelWithLossFn
 from modeling_multi_label.utils import results2html, root_dir
 
 
@@ -40,7 +40,7 @@ def test(trainer: Trainer, test_set):
 
 
 if __name__ == '__main__':
-    model = MultiLabelModel.from_pretrained(
+    model = MultiLabelModelWithLossFn.from_pretrained(
         root_dir("bst_model"),
     )
     _test_set = InMemoryPaperDataset.from_file(

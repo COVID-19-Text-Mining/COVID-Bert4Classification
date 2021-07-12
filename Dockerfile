@@ -5,6 +5,6 @@ ENV PYTHONPATH=$PYTHONPATH:/multilabel_classifier
 WORKDIR /multilabel_classifier
 COPY . .
 
-RUN pip install pymongo dnspython
+RUN pip install pymongo dnspython dataclass
 
 ENTRYPOINT ["python3", "/multilabel_classifier/script/update_db.py"]

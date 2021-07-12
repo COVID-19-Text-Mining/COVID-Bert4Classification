@@ -2,3 +2,4 @@ transformers ~= 4.8.1
 torch
 pymongo
 dnspython
+dataclasses

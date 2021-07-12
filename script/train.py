@@ -8,7 +8,7 @@ from transformers import TrainingArguments, IntervalStrategy, EvalPrediction, Tr
 
 from modeling_multi_label.config import CATS, PRETRAINED_MODEL, USE_MIRROR
 from modeling_multi_label.dataset import InMemoryPaperDataset
-from modeling_multi_label.model import MultiLabelModel
+from modeling_multi_label.model import MultiLabelModelWithLossFn
 from modeling_multi_label.utils import sigmoid, data_dir, root_dir
 from test_ import test
 
@@ -38,7 +38,7 @@ training_args = TrainingArguments(
     load_best_model_at_end=True
 )
 
-model = MultiLabelModel.from_pretrained(
+model = MultiLabelModelWithLossFn.from_pretrained(
     PRETRAINED_MODEL,
     num_labels=len(CATS),
     id2label={i: name for i, name in enumerate(CATS)},

@@ -18,11 +18,9 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from packaging.version import Version, parse
-
 from transformers.file_utils import ModelOutput, is_tf_available, is_torch_available
 from transformers.pipelines import Pipeline, pipeline
 from transformers.tokenization_utils import BatchEncoding
-
 
 # This is the minimal required version to
 # support some ONNX Runtime features
@@ -144,17 +142,18 @@ def ensure_valid_input(model, tokens, input_names):
     Returns: Tuple
 
     """
+    import inspect
     print("Ensuring inputs are in correct order")
 
-    model_args_name = model.forward.__code__.co_varnames
+    model_args_name = tuple(inspect.signature(model.forward).parameters.keys())
+
     model_args, ordered_input_names = [], []
-    for arg_name in model_args_name[1:]:  # start at index 1 to skip "self" argument
+    for arg_name in model_args_name:
         if arg_name in input_names:
             ordered_input_names.append(arg_name)
             model_args.append(tokens[arg_name])
         else:
             print(f"{arg_name} is not present in the generated input list.")
-            break
 
     print(f"Generated inputs order: {ordered_input_names}")
     return ordered_input_names, tuple(model_args)
@@ -195,7 +194,15 @@ def infer_shapes(nlp: Pipeline, framework: str) -> Tuple[List[str], List[str], D
         print(f"Found {'input' if is_input else 'output'} {name} with shape: {axes}")
         return axes
 
-    tokens = nlp.tokenizer("This is a sample output", return_tensors=framework)
+    tokens = nlp.tokenizer(
+        "This is a sample output",
+        return_tensors=framework,
+        return_attention_mask=True,
+        return_token_type_ids=True,
+        return_overflowing_tokens=False,
+        return_special_tokens_mask=False,
+        return_offsets_mapping=False,
+    )
     seq_len = tokens.input_ids.shape[-1]
     outputs = nlp.model(**tokens) if framework == "pt" else nlp.model(tokens)
     if isinstance(outputs, ModelOutput):
@@ -382,7 +389,7 @@ def convert(
 def optimize(onnx_model_path: Path) -> Path:
     """
     Load the model at the specified path and let onnxruntime look at transformations on the graph to enable all the
-    optimizations possibl
+    optimizations possible
 
     Args:
         onnx_model_path: filepath where the model binary description is stored
@@ -390,13 +397,34 @@ def optimize(onnx_model_path: Path) -> Path:
     Returns: Path where the optimized model binary description has been saved
 
     """
-    from onnxruntime import InferenceSession, SessionOptions
 
-    # Generate model name with suffix "optimized"
+    from onnxruntime.transformers.optimizer import optimize_model
+    from onnxruntime.transformers.onnx_model_bert import BertOptimizationOptions
+
+    # various graph optimization options.
+    # ZCode uses all the optimizations by default.
+    # Whether to use quantization or not can be selected optionally.
+    optimization_options = BertOptimizationOptions('bert')
+    optimization_options.enable_gelu = True
+    optimization_options.enable_layer_norm = True
+    optimization_options.enable_attention = True
+    optimization_options.enable_skip_layer_norm = True
+    optimization_options.enable_embed_layer_norm = True
+    optimization_options.enable_bias_skip_layer_norm = True
+    optimization_options.enable_bias_gelu = True
+    optimization_options.enable_gelu_approximation = False
+
+    optimizer = optimize_model(onnx_model_path.as_posix(),
+                               model_type='bert',
+                               num_heads=0,
+                               hidden_size=0,
+                               optimization_options=optimization_options,
+                               opt_level=0,
+                               use_gpu=False,
+                               only_onnxruntime=False)
+
     opt_model_path = generate_identified_filename(onnx_model_path, "-optimized")
-    sess_option = SessionOptions()
-    sess_option.optimized_model_filepath = opt_model_path.as_posix()
-    _ = InferenceSession(onnx_model_path.as_posix(), sess_option)
+    optimizer.save_model_to_file(opt_model_path.as_posix())
 
     print(f"Optimized model has been written at {opt_model_path}: \N{heavy check mark}")
     print("/!\\ Optimized model contains hardware specific operators which might not be portable. /!\\")
@@ -413,31 +441,21 @@ def quantize(onnx_model_path: Path) -> Path:
 
     Returns: The Path generated for the quantized
     """
-    import onnx
-    from onnxruntime.quantization import QuantizationMode, quantize
-
-    onnx_model = onnx.load(onnx_model_path.as_posix())
-
-    # Discussed with @yufenglee from ONNX runtime, this will be address in the next release of onnxruntime
-    print(
-        "As of onnxruntime 1.4.0, models larger than 2GB will fail to quantize due to protobuf constraint.\n"
-        "This limitation will be removed in the next release of onnxruntime."
-    )
-
-    quantized_model = quantize(
-        model=onnx_model,
-        quantization_mode=QuantizationMode.IntegerOps,
-        force_fusions=True,
-        symmetric_weight=True,
-    )
+    from onnxruntime.quantization import QuantType, quantize_dynamic
 
     # Append "-quantized" at the end of the model's name
     quantized_model_path = generate_identified_filename(onnx_model_path, "-quantized")
 
-    # Save model
-    print(f"Quantized model has been written at {quantized_model_path}: \N{heavy check mark}")
-    onnx.save_model(quantized_model, quantized_model_path.as_posix())
+    quantize_dynamic(onnx_model_path,
+                     quantized_model_path,
+                     op_types_to_quantize=['MatMul', 'Attention'],
+                     weight_type=QuantType.QInt8,
+                     per_channel=True,
+                     reduce_range=True,
+                     nodes_to_exclude=[],
+                     extra_options={'WeightSymmetric': False, 'MatMulConstBOnly': True})
 
+    print(f"Quantized model has been written at {quantized_model_path}: \N{heavy check mark}")
     return quantized_model_path
 
 
@@ -461,51 +479,47 @@ if __name__ == "__main__":
     # Make sure output is absolute path
     args.output = Path(args.output).absolute()
 
-    try:
-        print("\n====== Converting model to ONNX ======")
-        # Convert
-        convert(
-            args.framework,
-            args.model,
-            args.output,
-            args.opset,
-            args.tokenizer,
-            args.use_external_format,
-            args.pipeline,
-        )
+    print("\n====== Converting model to ONNX ======")
+    # Convert
+    convert(
+        args.framework,
+        args.model,
+        args.output,
+        args.opset,
+        args.tokenizer,
+        args.use_external_format,
+        args.pipeline,
+    )
 
-        if args.quantize:
-            # Ensure requirements for quantization on onnxruntime is met
-            check_onnxruntime_requirements(ORT_QUANTIZE_MINIMUM_VERSION)
+    if args.quantize:
+        # Ensure requirements for quantization on onnxruntime is met
+        check_onnxruntime_requirements(ORT_QUANTIZE_MINIMUM_VERSION)
 
-            # onnxruntime optimizations doesn't provide the same level of performances on TensorFlow than PyTorch
-            if args.framework == "tf":
-                print(
-                    "\t Using TensorFlow might not provide the same optimization level compared to PyTorch.\n"
-                    "\t For TensorFlow users you can try optimizing the model directly through onnxruntime_tools.\n"
-                    "\t For more information, please refer to the onnxruntime documentation:\n"
-                    "\t\thttps://github.com/microsoft/onnxruntime/tree/master/onnxruntime/python/tools/transformers\n"
-                )
+        # onnxruntime optimizations doesn't provide the same level of performances on TensorFlow than PyTorch
+        if args.framework == "tf":
+            print(
+                "\t Using TensorFlow might not provide the same optimization level compared to PyTorch.\n"
+                "\t For TensorFlow users you can try optimizing the model directly through onnxruntime_tools.\n"
+                "\t For more information, please refer to the onnxruntime documentation:\n"
+                "\t\thttps://github.com/microsoft/onnxruntime/tree/master/onnxruntime/python/tools/transformers\n"
+            )
 
-            print("\n====== Optimizing ONNX model ======")
+        print("\n====== Optimizing ONNX model ======")
 
-            # Quantization works best when using the optimized version of the model
-            args.optimized_output = optimize(args.output)
+        # Quantization works best when using the optimized version of the model
+        args.optimized_output = optimize(args.output)
 
-            # Do the quantization on the right graph
-            args.quantized_output = quantize(args.optimized_output)
+        # Do the quantization on the right graph
+        args.quantized_output = quantize(args.optimized_output)
 
-        # And verify
-        if args.check_loading:
-            print("\n====== Check exported ONNX model(s) ======")
-            verify(args.output)
+    # And verify
+    if args.check_loading:
+        print("\n====== Check exported ONNX model(s) ======")
+        verify(args.output)
 
-            if hasattr(args, "optimized_output"):
-                verify(args.optimized_output)
+        if hasattr(args, "optimized_output"):
+            verify(args.optimized_output)
 
-            if hasattr(args, "quantized_output"):
-                verify(args.quantized_output)
+        if hasattr(args, "quantized_output"):
+            verify(args.quantized_output)
 
-    except Exception as e:
-        print(f"Error while converting the model: {e}")
-        exit(1)
