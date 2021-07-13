@@ -4,10 +4,10 @@ Training scripts
 
 from sklearn.metrics import hamming_loss, label_ranking_loss, label_ranking_average_precision_score
 from transformers import TrainingArguments, IntervalStrategy, EvalPrediction, Trainer, AdamW, \
-    get_cosine_schedule_with_warmup
+    get_cosine_schedule_with_warmup, RobertaTokenizerFast
 
 from modeling_multi_label.config import CATS, PRETRAINED_MODEL, USE_MIRROR
-from modeling_multi_label.dataset import InMemoryPaperDataset
+from modeling_multi_label.dataset import InMemoryPaperDataset, MultiLabelDataCollator
 from modeling_multi_label.model import MultiLabelModelWithLossFn
 from modeling_multi_label.utils import sigmoid, data_dir, root_dir
 from test_ import test
@@ -46,7 +46,7 @@ model = MultiLabelModelWithLossFn.from_pretrained(
     mirror=USE_MIRROR,
 )
 
-training_set = InMemoryPaperDataset.from_file(data_dir("training_set.json"), drop_abstract_prob=0.1)
+training_set = InMemoryPaperDataset.from_file(data_dir("training_set.json"))
 eval_set = InMemoryPaperDataset.from_file(data_dir("test_set.json"))
 
 
@@ -54,6 +54,10 @@ eval_set = InMemoryPaperDataset.from_file(data_dir("test_set.json"))
 #     _dataset,
 #     [len(_dataset) - int(len(_dataset) * 0.25), int(len(_dataset) * 0.25)]
 # )
+
+data_collator = MultiLabelDataCollator(
+    tokenizer=RobertaTokenizerFast.from_pretrained(PRETRAINED_MODEL)
+)
 
 
 def compute_metrics(eval_prediction: EvalPrediction) -> dict:
@@ -83,6 +87,7 @@ scheduler = get_cosine_schedule_with_warmup(
 trainer = Trainer(
     model=model,
     args=training_args,
+    data_collator=data_collator,
     train_dataset=training_set,
     eval_dataset=eval_set,
     compute_metrics=compute_metrics,

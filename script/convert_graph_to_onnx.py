@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import shutil
 from argparse import ArgumentParser
-from os import listdir, makedirs
+from os import listdir, makedirs, remove
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -85,6 +85,12 @@ class OnnxConverterArgumentParser(ArgumentParser):
             action="store_true",
             help="Quantize the neural network to be run with int8",
         )
+
+        self.add_argument(
+            "--remove-unoptimized",
+            action="store_true",
+            help="only stores the last optimized model"
+        )
         self.add_argument("output")
 
 
@@ -117,9 +123,11 @@ def check_onnxruntime_requirements(minimum_version: Version):
         # We require 1.4.0 minimum
         if ort_version < ORT_QUANTIZE_MINIMUM_VERSION:
             raise ImportError(
-                f"We found an older version of onnxruntime ({onnxruntime.__version__}) "
-                f"but we require onnxruntime to be >= {minimum_version} to enable all the conversions options.\n"
-                f"Please update onnxruntime by running `pip install --upgrade onnxruntime`"
+                "We found an older version of onnxruntime ({}) "
+                "but we require onnxruntime to be >= {} to enable all the conversions options.\n"
+                "Please update onnxruntime by running `pip install --upgrade onnxruntime`".format(
+                    onnxruntime.__version__, minimum_version
+                )
             )
 
     except ImportError:
@@ -153,9 +161,9 @@ def ensure_valid_input(model, tokens, input_names):
             ordered_input_names.append(arg_name)
             model_args.append(tokens[arg_name])
         else:
-            print(f"{arg_name} is not present in the generated input list.")
+            print("{} is not present in the generated input list.".format(arg_name))
 
-    print(f"Generated inputs order: {ordered_input_names}")
+    print("Generated inputs order: {}".format(ordered_input_names))
     return ordered_input_names, tuple(model_args)
 
 
@@ -186,12 +194,16 @@ def infer_shapes(nlp: Pipeline, framework: str) -> Tuple[List[str], List[str], D
                 if len(tensor.shape) == 2:
                     axes[1] = "sequence"
                 else:
-                    raise ValueError(f"Unable to infer tensor axes ({len(tensor.shape)})")
+                    raise ValueError("Unable to infer tensor axes ({})".format(len(tensor.shape)))
             else:
                 seq_axes = [dim for dim, shape in enumerate(tensor.shape) if shape == seq_len]
                 axes.update({dim: "sequence" for dim in seq_axes})
 
-        print(f"Found {'input' if is_input else 'output'} {name} with shape: {axes}")
+        print("Found {} {name} with shape: {axes}".format(
+            'input' if is_input else 'output',
+            name=name,
+            axes=axes,
+        ))
         return axes
 
     tokens = nlp.tokenizer(
@@ -223,7 +235,7 @@ def infer_shapes(nlp: Pipeline, framework: str) -> Tuple[List[str], List[str], D
             outputs_flat.append(output)
 
     # Generate output names & axes
-    output_names = [f"output_{i}" for i in range(len(outputs_flat))]
+    output_names = ["output_{}".format(i) for i in range(len(outputs_flat))]
     output_dynamic_axes = {k: build_shape_dict(k, v, False, seq_len) for k, v in zip(output_names, outputs_flat)}
 
     # Create the aggregated axes representation
@@ -260,7 +272,7 @@ def load_graph_from_args(
     if framework == "tf" and not is_tf_available():
         raise Exception("Cannot convert because TF is not installed. Please install tensorflow first.")
 
-    print(f"Loading pipeline (model: {model_name}, tokenizer: {tokenizer})")
+    print("Loading pipeline (model: {}, tokenizer: {})".format(model_name, tokenizer))
 
     # Allocate tokenizer and model
     return pipeline(pipeline_name, model=model, tokenizer=tokenizer, framework=framework, model_kwargs=models_kwargs)
@@ -285,7 +297,7 @@ def convert_pytorch(nlp: Pipeline, opset: int, output: Path, use_external_format
     import torch
     from torch.onnx import export
 
-    print(f"Using framework PyTorch: {torch.__version__}")
+    print("Using framework PyTorch: {}".format(torch.__version__))
 
     with torch.no_grad():
         input_names, output_names, dynamic_axes, tokens = infer_shapes(nlp, "pt")
@@ -328,7 +340,7 @@ def convert_tensorflow(nlp: Pipeline, opset: int, output: Path):
         from keras2onnx import __version__ as k2ov
         from keras2onnx import convert_keras, save_model
 
-        print(f"Using framework TensorFlow: {tf.version.VERSION}, keras2onnx: {k2ov}")
+        print("Using framework TensorFlow: {}, keras2onnx: {}".format(tf.version.VERSION, k2ov))
 
         # Build
         input_names, output_names, dynamic_axes, tokens = infer_shapes(nlp, "tf")
@@ -339,7 +351,9 @@ def convert_tensorflow(nlp: Pipeline, opset: int, output: Path):
         save_model(onnx_model, output.as_posix())
 
     except ImportError as e:
-        raise Exception(f"Cannot import {e.name} required to convert TF model to ONNX. Please install {e.name} first.")
+        raise Exception(
+            "Cannot import {0} required to convert TF model to ONNX. Please install {0} first.".format(e.name)
+        )
 
 
 def convert(
@@ -368,16 +382,16 @@ def convert(
     Returns:
 
     """
-    print(f"ONNX opset version set to: {opset}")
+    print("ONNX opset version set to: {}".format(opset))
 
     # Load the pipeline
     nlp = load_graph_from_args(pipeline_name, framework, model, tokenizer, **model_kwargs)
 
     if not output.parent.exists():
-        print(f"Creating folder {output.parent}")
+        print("Creating folder {}".format(output.parent))
         makedirs(output.parent.as_posix())
     elif len(listdir(output.parent.as_posix())) > 0:
-        raise Exception(f"Folder {output.parent.as_posix()} is not empty, aborting conversion")
+        raise Exception("Folder {} is not empty, aborting conversion".format(output.parent.as_posix()))
 
     # Export the graph
     if framework == "pt":
@@ -426,7 +440,7 @@ def optimize(onnx_model_path: Path) -> Path:
     opt_model_path = generate_identified_filename(onnx_model_path, "-optimized")
     optimizer.save_model_to_file(opt_model_path.as_posix())
 
-    print(f"Optimized model has been written at {opt_model_path}: \N{heavy check mark}")
+    print("Optimized model has been written at {}: \N{heavy check mark}".format(opt_model_path))
     print("/!\\ Optimized model contains hardware specific operators which might not be portable. /!\\")
 
     return opt_model_path
@@ -455,7 +469,7 @@ def quantize(onnx_model_path: Path) -> Path:
                      nodes_to_exclude=[],
                      extra_options={'WeightSymmetric': False, 'MatMulConstBOnly': True})
 
-    print(f"Quantized model has been written at {quantized_model_path}: \N{heavy check mark}")
+    print("Quantized model has been written at {}: \N{heavy check mark}".format(quantized_model_path))
     return quantized_model_path
 
 
@@ -463,13 +477,21 @@ def verify(path: Path):
     from onnxruntime import InferenceSession, SessionOptions
     from onnxruntime.capi.onnxruntime_pybind11_state import RuntimeException
 
-    print(f"Checking ONNX model loading from: {path} ...")
+    print("Checking ONNX model loading from: {} ...".format(path))
     try:
         onnx_options = SessionOptions()
         _ = InferenceSession(path.as_posix(), onnx_options, providers=["CPUExecutionProvider"])
-        print(f"Model {path} correctly loaded: \N{heavy check mark}")
+        print("Model {} correctly loaded: \N{heavy check mark}".format(path))
     except RuntimeException as re:
-        print(f"Error while loading the model {re}: \N{heavy ballot x}")
+        print("Error while loading the model {}: \N{heavy ballot x}".format(re))
+
+
+def save_config(model, dst):
+    from transformers import AutoConfig, PretrainedConfig
+
+    config: PretrainedConfig = AutoConfig.from_pretrained(model)
+    config.save_pretrained(dst)
+    print("\n===== Save model config to {} =====".format(dst))
 
 
 if __name__ == "__main__":
@@ -523,3 +545,11 @@ if __name__ == "__main__":
         if hasattr(args, "quantized_output"):
             verify(args.quantized_output)
 
+    if args.remove_unoptimized:
+        files = listdir(args.output.parent.as_posix())
+        files.sort(key=lambda _: len(_))
+
+        for file in files[:-1]:
+            remove(path=args.output.parent.joinpath(file).absolute().as_posix())
+
+    save_config(args.model, args.output.parent.as_posix())

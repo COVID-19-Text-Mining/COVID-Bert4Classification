@@ -4,10 +4,10 @@ Predicting scripts
 
 import json
 
-from transformers import Trainer, TrainingArguments
+from transformers import Trainer, TrainingArguments, RobertaTokenizerFast
 
 from modeling_multi_label.config import CATS, PRETRAINED_MODEL
-from modeling_multi_label.dataset import InMemoryPaperDataset
+from modeling_multi_label.dataset import InMemoryPaperDataset, MultiLabelDataCollator
 from modeling_multi_label.model import MultiLabelModelWithLossFn
 from modeling_multi_label.utils import results2html, root_dir
 
@@ -43,6 +43,11 @@ if __name__ == '__main__':
     model = MultiLabelModelWithLossFn.from_pretrained(
         root_dir("bst_model"),
     )
+
+    data_collator = MultiLabelDataCollator(
+        tokenizer=RobertaTokenizerFast.from_pretrained(PRETRAINED_MODEL)
+    )
+
     _test_set = InMemoryPaperDataset.from_file(
         root_dir(r"rsc", "test_set.json"),
     )
@@ -56,6 +61,6 @@ if __name__ == '__main__':
         no_cuda=False,
     )
 
-    _trainer = Trainer(model=model, args=training_args)
+    _trainer = Trainer(model=model, data_collator=data_collator, args=training_args)
     test(trainer=_trainer, test_set=_test_set)
     exec(open(root_dir("script", "analysis.py"), encoding="utf-8").read())

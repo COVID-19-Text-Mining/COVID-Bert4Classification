@@ -2,6 +2,8 @@
 Some useful functions
 """
 import os
+import time
+from contextlib import contextmanager
 
 import jinja2
 import numpy as np
@@ -22,6 +24,7 @@ def results2html(output):
     1
     >>> g.close()
     """
+
     def is_correct(logits, labels):
         for logit, label in zip(logits, labels):
             if (logit > 0.) ^ (label == 1.):
@@ -80,3 +83,17 @@ script_dir = DirObj(get_abs_path(__file__, "..", "script"))
 data_dir = DirObj(get_abs_path(__file__, "..", "rsc"))
 cpt_dir = DirObj(get_abs_path(__file__, "..", "checkpoints"))
 root_dir = DirObj(get_abs_path(__file__, ".."))
+
+
+@contextmanager
+def timer(desc=""):
+    start = time.perf_counter()
+    yield
+    end = time.perf_counter()
+    print("{} Time: {} s".format(desc, end - start))
+
+
+@contextmanager
+def nop():
+    """Do nothing"""
+    yield

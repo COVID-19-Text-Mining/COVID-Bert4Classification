@@ -1,54 +1,44 @@
-import datetime
-import hashlib
+import argparse
 import logging
 import os
-from typing import List, Dict, Any, Union
+from importlib.machinery import SourceFileLoader
+from importlib.util import spec_from_loader, module_from_spec
+from typing import Callable
 
-import pymongo
-import numpy as np
-import torch
-from bson import ObjectId
 from onnxruntime import GraphOptimizationLevel, InferenceSession, SessionOptions, get_all_providers
 from torch.utils.data import DataLoader
-from transformers import default_data_collator, RobertaConfig
+from transformers import AutoConfig, RobertaTokenizerFast
 
-from modeling_multi_label.dataset import IterablePaperDataset
-from modeling_multi_label.utils import root_dir, sigmoid
-
-DEBUG_MODE = True
+from modeling_multi_label.config import PRETRAINED_MODEL
+from modeling_multi_label.dataset import MultiLabelDataCollator
+from modeling_multi_label.utils import root_dir, timer, nop
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s -- %(message)s")
 logger = logging.getLogger(__name__)
 
+spec = spec_from_loader(
+    "update_utils",
+    SourceFileLoader("update_utils", root_dir("script", "update_db.py"))
+)
+update_utils = module_from_spec(spec)
+spec.loader.exec_module(update_utils)
 
-# use md5sum to identify a checkpoint
-model_hash = hashlib.md5(
-    open(root_dir("bst_model_onnx", "model-optimized-quantized.onnx"), "rb").read()
-).hexdigest()
+UpdateArgumentParser: argparse.ArgumentParser = update_utils.UpdateArgumentParser
+get_collections: Callable = update_utils.get_collections
+compute_model_hash: Callable = update_utils.compute_model_hash
+get_iterable_dataset: Callable = update_utils.get_iterable_dataset
+write_to_db: Callable = update_utils.write_to_db
 
-try:
-    client = pymongo.MongoClient(
-        os.getenv("COVID_HOST"),
-        username=os.getenv("COVID_USER"),
-        password=os.getenv("COVID_PASS"),
-        authSource=os.getenv("COVID_DB")
-    )
-    db = client[os.getenv("COVID_DB")]
-except TypeError as e:
-    if DEBUG_MODE:
-        client = pymongo.MongoClient()
-        db = client["LitCOVID"]
-    else:
-        e.args = (e.args[0] + ". Hint: maybe you forget to set all of the following environment variables: "
-                              "['COVID_HOST', 'COVID_USER', 'COVID_PASS', 'COVID_DB']?",) + e.args[1:]
-        raise
 
-collection = db["entries2"]
-output_collection = db["entries_categories_ml"]
+class UpdateONNXArgumentParser(UpdateArgumentParser):
+    def __init__(self, *args, **kwargs):
+        super(UpdateONNXArgumentParser, self).__init__(*args, **kwargs)
+        self.add_argument("--gpu", action="store_true",
+                          help="Whether to enable GPU for inference.")
 
 
 def create_model_for_provider(model_path: str, provider: str = "CPUExecutionProvider") -> InferenceSession:
-    assert provider in get_all_providers(), f"provider {provider} not found, {get_all_providers()}"
+    assert provider in get_all_providers(), "provider {} not found, {}".format(provider, get_all_providers())
 
     # Few properties that might have an impact on performances (provided by MS)
     options = SessionOptions()
@@ -62,70 +52,46 @@ def create_model_for_provider(model_path: str, provider: str = "CPUExecutionProv
     return session
 
 
-def _data_collator(features: List[Dict[str, Any]]) -> Dict[str, Union[np.ndarray, List[ObjectId]]]:
-    """
-    Preserve the papers' ObjectId during batching
-    """
-    first = features[0]
-    if "_id" in first:
-        ids = [f.pop("_id") for f in features]
-    else:
-        ids = None
-
-    batch = default_data_collator(features=features)
-    batch = {k: v.cpu().detach().numpy() for k, v in batch.items()}
-    batch["_ids"] = ids
-    return batch
-
-
-def get_dataloader():
-    def papers():
-        for paper in collection.find({}, projection=["doi", "abstract", "title"]):
-            if output_collection.find_one({"_id": paper["_id"]}):
-                continue
-            yield paper
-
-    dataset = IterablePaperDataset(papers())
-
-    return DataLoader(dataset=dataset, batch_size=8, collate_fn=_data_collator)
-
-
-def write_to_db(ids: List[ObjectId],
-                logits: torch.Tensor,
-                id2label: Dict[int, str]):
-    for _id, logit in zip(ids, logits):
-        prob = sigmoid(logit)
-        categories = {}
-        for label_id, label in id2label.items():
-            categories[label] = ((logit[label_id] > 0.).item(), prob[label_id].item())
-
-        output_collection.update_one({"_id": _id}, {"$set": {
-            "categories": categories,
-            "last_updated": datetime.datetime.now(),
-            "model_hash": model_hash,
-        }}, upsert=True)
-
-        msg = {
-            "_id": _id,
-            "predicted_labels": [label for label_id, label in id2label.items() if logit[label_id] > 0.],
-        }
-
-        if DEBUG_MODE:
-            msg["true_labels"] = [k for k, v in collection.find_one({"_id": _id})["label"].items() if v]
-
-        logger.info(
-            msg=str(msg)
-        )
-
-
 if __name__ == '__main__':
-    model = create_model_for_provider(
-        model_path=root_dir("bst_model_onnx", "model-optimized.onnx"),
-        provider="CPUExecutionProvider"
-    )
+    cli_args = UpdateONNXArgumentParser(
+        prog="Update DB ONNX Version", default_path=root_dir("bst_model_onnx")
+    ).parse_args()
+    cli_args.model_path = os.path.join(cli_args.model_dir, "model-optimized-quantized.onnx")
 
-    for batch in get_dataloader():
-        ids = batch.pop("_ids")
-        logits = model.run(None, batch)[0]
-        write_to_db(ids=ids, logits=logits,
-                    id2label=RobertaConfig.from_pretrained(root_dir("bst_model", "config.json")).id2label)
+    _model = create_model_for_provider(
+        model_path=cli_args.model_path,
+        provider="CPUExecutionProvider" if not cli_args.gpu else "CUDAExecutionProvider"
+    )
+    model_hash_ = compute_model_hash(cli_args.model_path)
+
+    collection_, output_collection_ = get_collections(
+        collection_name=cli_args.collection,
+        output_collection_name=cli_args.output_collection,
+        debug=cli_args.debug,
+    )
+    dataset = get_iterable_dataset(
+        collection=collection_,
+        output_collection=output_collection_,
+        debug=cli_args.debug,
+    )
+    data_collator = MultiLabelDataCollator(
+        tokenizer=RobertaTokenizerFast.from_pretrained(PRETRAINED_MODEL),
+        return_tensors="np",
+    )
+    data_loader = DataLoader(dataset=dataset, batch_size=cli_args.batch_size, collate_fn=data_collator)
+
+    model_config = AutoConfig.from_pretrained(cli_args.model_dir)
+
+    with timer("DEBUG:") if cli_args.debug else nop():
+        for batch in data_loader:
+            ids = batch.pop("_ids")
+            logits = _model.run(None, batch)[0]
+            write_to_db(
+                ids=ids,
+                logits=logits,
+                id2label=model_config.id2label,
+                model_hash=model_hash_,
+                collection=collection_,
+                output_collection=output_collection_,
+                debug=cli_args.debug,
+            )

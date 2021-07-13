@@ -3,15 +3,18 @@ Dataset class to provide training data
 """
 
 import json
-import random
 import re
+from dataclasses import dataclass, field
 from typing import Dict, Any, List, Union, Iterable, Optional
 
+import numpy as np
 import torch
+from bson import ObjectId
 from torch.utils.data import Dataset, IterableDataset
-from transformers import RobertaTokenizer
+from transformers import PreTrainedTokenizerBase
+from transformers.file_utils import PaddingStrategy
 
-from .config import PRETRAINED_MODEL, CATS, USE_MIRROR
+from .config import CATS
 
 
 class BasePaperDataset:
@@ -22,42 +25,27 @@ class BasePaperDataset:
         """
         self.papers = papers  # keeps all the original data
 
-        self.tokenizer = RobertaTokenizer.from_pretrained(PRETRAINED_MODEL, mirror=USE_MIRROR)
-
-    def _process(self, paper: Dict[str, Any]) -> Dict[str, Union[str, torch.Tensor]]:
-        title = paper["title"]
-        abstract = paper["abstract"]
-
+    @staticmethod
+    def _process(paper: Dict[str, Any]) -> Dict[str, Union[str, List[int]]]:
         if "label" not in paper:
             # when no label available
             label = None
         else:
             # make sure the order is right
-            label = torch.tensor([
-                paper["label"][label_name] for label_name in CATS
-            ], dtype=torch.float32)
+            label = [int(paper["label"][label_name]) for label_name in CATS]
 
-        output = self.tokenizer(
-            abstract,
-            text_pair=title,
-            add_special_tokens=True,
-            padding="max_length",
-            truncation="longest_first",
-            return_tensors="pt",
-            return_attention_mask=True,
-            return_token_type_ids=True,
-            return_overflowing_tokens=False,
-            return_special_tokens_mask=False,
-            return_offsets_mapping=False,
-        )
-
-        return {
-            "input_ids": output["input_ids"].squeeze(0),
-            "attention_mask": output["attention_mask"].squeeze(0),
-            "token_type_ids": output["token_type_ids"].squeeze(0),
-            "text": paper["abstract"],
-            "label_ids": label,
+        output = {
+            "abstract": paper["abstract"],
+            "title": paper["title"],
         }
+
+        if label is not None:
+            output["label_ids"] = label
+
+        if "_id" in paper:  # used to identify each document
+            output["_id"] = paper["_id"]
+
+        return output
 
 
 class InMemoryPaperDataset(BasePaperDataset, Dataset):
@@ -66,35 +54,24 @@ class InMemoryPaperDataset(BasePaperDataset, Dataset):
     """
     papers: List[Dict[str, Any]]
 
-    def __init__(self, papers, drop_abstract_prob: Optional[float] = None):
-        super(InMemoryPaperDataset, self).__init__(papers=papers)
-        if drop_abstract_prob is not None and not 0. <= drop_abstract_prob <= 1.:
-            raise ValueError("drop_abstract_prob should be 0 ~ 1.")
-        self.drop_abstract_prob = drop_abstract_prob
-
     def __getitem__(self, index):
-        if self.drop_abstract_prob is not None and \
-                random.random() <= self.drop_abstract_prob:
-            paper = {**self.papers[index], "abstract": ""}
-            return self._process(paper)
         return self._process(self.papers[index])
 
     def __len__(self):
         return len(self.papers)
 
     @classmethod
-    def from_file(cls, path, drop_abstract_prob: Optional[float] = None):
+    def from_file(cls, path):
         """
         Load dataset from json file
 
         Args:
             path: the path to the json file
-            drop_abstract_prob: The prob of randomly setting abstract string to empty string
         """
         with open(path, "r", encoding="utf-8") as f:
             papers = json.load(f)
 
-        return cls(papers=papers, drop_abstract_prob=drop_abstract_prob)
+        return cls(papers=papers)
 
 
 class IterablePaperDataset(BasePaperDataset, IterableDataset):
@@ -110,13 +87,67 @@ class IterablePaperDataset(BasePaperDataset, IterableDataset):
 
     def __iter__(self):
         for paper in self.papers:
-            title = paper.get("title", "")
-            abstract = paper.get("abstract", "")
+            paper["title"] = paper.get("title", "") or ""
+            paper["abstract"] = paper.get("abstract", "") or ""
 
-            if len(title.split(" ")) + len(abstract.split(" ")) >= 10 and \
-                    len(abstract.split(" ")) >= 4 and \
-                    re.sub(r"\W", "", paper["abstract"]):
+            if len(re.split(r"\W+", paper["abstract"])) >= 8:
                 data = self._process(paper)
-                if "_id" in paper:
-                    data["_id"] = paper["_id"]
                 yield data
+
+
+@dataclass
+class MultiLabelDataCollator:
+    """
+    Combine data into batch
+
+    When calling this method,
+        1. tokenize `title` + `abstract` fields into `input_ids`, `attention_mask`, `token_type_ids`
+        2. if data contains `_id` field, combine `_id` of all the data into field `_ids`
+        3. if data contains `label_ids` field, combine `label_ids` into `labels`
+    """
+    tokenizer: PreTrainedTokenizerBase
+    padding: Union[bool, str, PaddingStrategy] = field(default=PaddingStrategy.LONGEST, repr=False)
+    return_tensors: str = field(default="pt", repr=False)
+    return_attention_mask: bool = field(default=True, repr=False)
+    return_token_type_ids: bool = field(default=True, repr=False)
+    return_overflowing_tokens: bool = field(default=False, repr=False)
+    return_special_tokens_mask: bool = field(default=False, repr=False)
+    return_offsets_mapping: bool = field(default=False, repr=False)
+
+    def __call__(self, features: List[Dict[str, Any]]) -> Dict[str, Union[np.ndarray, torch.Tensor, List[ObjectId]]]:
+        """
+        Preserve the papers' ObjectId during batching
+        """
+        batch = {}
+        first = features[0]
+
+        if "_id" in first:
+            batch["_ids"] = [f["_id"] for f in features]
+
+        if "label_ids" in first:
+            if isinstance(first["label_ids"], torch.Tensor):
+                batch["labels"] = torch.stack([f["label_ids"] for f in features])
+            else:
+                dtype = torch.long if type(first["label_ids"][0]) is int else torch.float
+                batch["labels"] = torch.tensor([f["label_ids"] for f in features], dtype=dtype)
+
+        output = self.tokenizer(
+            [f.pop("abstract") for f in features],
+            text_pair=[f.pop("title") for f in features],
+            add_special_tokens=True,
+            padding=self.padding,
+            truncation="longest_first",
+            return_tensors=self.return_tensors,
+            return_attention_mask=self.return_attention_mask,
+            return_token_type_ids=self.return_token_type_ids,
+            return_overflowing_tokens=self.return_overflowing_tokens,
+            return_special_tokens_mask=self.return_special_tokens_mask,
+            return_offsets_mapping=self.return_offsets_mapping,
+        )
+
+        if self.return_tensors == "np":
+            output = {k: v.astype(np.int64) for k, v in output.items()}
+
+        batch.update(output)
+
+        return batch
