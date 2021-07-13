@@ -38,7 +38,8 @@ We use docker to deploy our classification model. As the model has not been made
 # Build docker container (CPU version)
 docker build . -t idocx/multilabel-classifier-cpu \
   --build-arg DEVICE=cpu
-
+```
+```shell
 # Build docker container (GPU version)
 docker build . -t idocx/multilabel-classifier-gpu \
   --build-arg DEVICE=gpu
@@ -59,7 +60,8 @@ docker run --rm \
   -e COVID_DB=$COVID_DB \
   idocx/multilabel-classifier-cpu \
   --batch-size 1
-  
+```
+```shell
 # GPU version
 docker run --rm --gpus all \
   -n multilabel-classifier-gpu \
