@@ -487,11 +487,15 @@ def verify(path: Path):
 
 
 def save_config(model, dst):
-    from transformers import AutoConfig, PretrainedConfig
+    from transformers import AutoConfig, PretrainedConfig, AutoTokenizer
 
     config: PretrainedConfig = AutoConfig.from_pretrained(model)
     config.save_pretrained(dst)
-    print("\n===== Save model config to {} =====".format(dst))
+
+    tokenizer = AutoTokenizer.from_pretrained(model)
+    tokenizer.save_pretrained(dst)
+
+    print("\n===== Save model config and tokenizer to {} =====".format(dst))
 
 
 if __name__ == "__main__":

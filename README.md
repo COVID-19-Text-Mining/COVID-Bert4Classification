@@ -27,16 +27,14 @@ All the test are run on the same PC (No CUDA).
 
 | Optimization Method | Time (sec, 100 papers) |
 | :---- | :---: |
-| Vanilla Model | 113.5 |
+| Unoptimized | 113.5 |
 | ONNX optimized + Int8 Quantized | 91.6 |
+| Dynamic Padding | 52.3 |
+| ONNX optimized + Int8 Quantized + Dynamic Padding | **45.1** |
 ## Deployment
 ### Deploy with docker
 We use docker to deploy our classification model. As the model has not been made public, we have to build container from `Dockerfile` instead of pulling directly from DockerHub.
 ```shell
-# Download trained weights
-wget https://www.ocf.berkeley.edu/~yuxingfei/models/model.tar.gz \
-  && tar -zxvf model.tar.gz && rm model.tar.gz
-
 # Build docker container (CPU version)
 docker build . -t idocx/multilabel-classifier-cpu \
   --build-arg DEVICE=cpu
@@ -59,7 +57,8 @@ docker run --rm \
   -e COVID_USER=$COVID_USER \
   -e COVID_PASS=$COVID_PASS \
   -e COVID_DB=$COVID_DB \
-  idocx/multilabel-classifier-cpu
+  idocx/multilabel-classifier-cpu \
+  --batch-size 1
   
 # GPU version
 docker run --rm --gpus all \
@@ -68,7 +67,8 @@ docker run --rm --gpus all \
   -e COVID_USER=$COVID_USER \
   -e COVID_PASS=$COVID_PASS \
   -e COVID_DB=$COVID_DB \
-  idocx/multilabel-classifier-gpu
+  idocx/multilabel-classifier-gpu \
+  --batch-size 16
 ```
 
 ### Deploy directly

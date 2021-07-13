@@ -75,7 +75,7 @@ if __name__ == '__main__':
         debug=cli_args.debug,
     )
     data_collator = MultiLabelDataCollator(
-        tokenizer=RobertaTokenizerFast.from_pretrained(PRETRAINED_MODEL),
+        tokenizer=RobertaTokenizerFast.from_pretrained(cli_args.model_dir),
         return_tensors="np",
     )
     data_loader = DataLoader(dataset=dataset, batch_size=cli_args.batch_size, collate_fn=data_collator)

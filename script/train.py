@@ -97,4 +97,5 @@ trainer = Trainer(
 if __name__ == '__main__':
     trainer.train()
     trainer.save_model(root_dir("bst_model"))
+    data_collator.tokenizer.save_pretrained(root_dir("bst_model"))
     test(trainer=trainer, test_set=eval_set)

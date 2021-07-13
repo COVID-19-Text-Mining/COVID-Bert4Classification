@@ -6,8 +6,9 @@ install.sh
 README.md
 html_template/
 __pycache__/
-requirements.txt
 checkpoints/
 .idea/
+.git/
 Dockerfile
 model.tar.gz
+bst_model_onnx/

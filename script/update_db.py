@@ -11,7 +11,6 @@ import transformers
 from bson import ObjectId
 from transformers import Trainer, TrainingArguments, RobertaTokenizerFast
 
-from modeling_multi_label.config import PRETRAINED_MODEL
 from modeling_multi_label.dataset import IterablePaperDataset, MultiLabelDataCollator
 from modeling_multi_label.model import MultiLabelModelWithLossFn
 from modeling_multi_label.utils import root_dir, timer, nop, sigmoid
@@ -192,7 +191,7 @@ if __name__ == '__main__':
     )
 
     data_collator = MultiLabelDataCollator(
-        tokenizer=RobertaTokenizerFast.from_pretrained(PRETRAINED_MODEL)
+        tokenizer=RobertaTokenizerFast.from_pretrained(cli_args.model_dir)
     )
 
     trainer = DBTrainer(
