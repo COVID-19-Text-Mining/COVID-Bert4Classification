@@ -73,6 +73,7 @@ if __name__ == '__main__':
         collection=collection_,
         output_collection=output_collection_,
         debug=cli_args.debug,
+        need_sort=cli_args.batch_size > 1,
     )
     data_collator = MultiLabelDataCollator(
         tokenizer=RobertaTokenizerFast.from_pretrained(cli_args.model_dir),

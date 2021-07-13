@@ -64,18 +64,25 @@ def compute_model_hash(model_path):
     return _model_hash
 
 
-def get_iterable_dataset(collection, output_collection, debug):
+def get_iterable_dataset(collection, output_collection, debug, need_sort=True):
     cmd = [
         {"$project": {"_id": 1, "abstract": 1, "title": 1}},
         {"$lookup": {"from": output_collection.name, "localField": "_id",
                      "foreignField": "_id", "as": "predictions"}},
         {"$match": {"predictions": []}},
         {"$project": {"predictions": 0}},
-        {"$addFields": {"length": {"$sum": [{"$strLenCP": "$title"}, {"$strLenCP": "$abstract"}]}}},
-        {"$sort": {"length": 1}}
     ]
     if debug:
-        cmd.insert(3, {"$limit": 100})
+        cmd.extend([
+            {"$limit": 100}
+        ])
+
+    if need_sort:
+        cmd.extend([
+            {"$addFields": {"length": {"$sum": [{"$strLenCP": "$title"}, {"$strLenCP": "$abstract"}]}}},
+            {"$sort": {"length": 1}},
+        ])
+
     papers = collection.aggregate(cmd)
 
     # def papers():
@@ -188,6 +195,7 @@ if __name__ == '__main__':
         collection=collection_,
         output_collection=output_collection_,
         debug=cli_args.debug,
+        need_sort=cli_args.batch_size > 1,
     )
 
     data_collator = MultiLabelDataCollator(
