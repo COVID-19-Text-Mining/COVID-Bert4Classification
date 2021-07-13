@@ -76,5 +76,5 @@ docker run --rm --gpus all \
 pip install -r requirements.txt
 
 # remember to set DB env variable before runing the script
-PYTHONPATH=$PYTHONPATH:$(pwd) && python script/upadte_db.py
+PYTHONPATH=$PYTHONPATH:$(pwd) && python script/upadte_db.py --batch-size 1
 ```
