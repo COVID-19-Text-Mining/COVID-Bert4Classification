@@ -95,4 +95,5 @@ if __name__ == '__main__':
                 collection=collection_,
                 output_collection=output_collection_,
                 debug=cli_args.debug,
+                bulk_write=cli_args.batch_size >= 8,
             )

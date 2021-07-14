@@ -103,9 +103,11 @@ def write_to_db(ids: List[ObjectId],
                 logits: torch.Tensor,
                 id2label: Dict[int, str],
                 model_hash: str,
-                collection,
-                output_collection,
+                collection: pymongo.collection.Collection,
+                output_collection: pymongo.collection.Collection,
+                bulk_write: bool,
                 debug: bool):
+    requests = []
     for _id, logit in zip(ids, logits):
         if isinstance(logit, torch.Tensor):
             prob = torch.sigmoid(logit)
@@ -116,20 +118,30 @@ def write_to_db(ids: List[ObjectId],
         for label_id, label in id2label.items():
             categories[label] = ((logit[label_id] > 0.).item(), prob[label_id].item())
 
-        output_collection.update_one({"_id": _id}, {"$set": {
-            "categories": categories,
-            "last_updated": datetime.datetime.now(),
-            "model_hash": model_hash,
-        }}, upsert=True)
+        if bulk_write:
+            requests.append(pymongo.UpdateOne({"_id": _id}, {"$set": {
+                "categories": categories,
+                "last_updated": datetime.datetime.now(),
+                "model_hash": model_hash,
+            }}, upsert=True))
+        else:
+            output_collection.update_one({"_id": _id}, {"$set": {
+                "categories": categories,
+                "last_updated": datetime.datetime.now(),
+                "model_hash": model_hash,
+            }}, upsert=True)
+
         msg = {"_id": _id, "predicted_labels": [
             label for label_id, label in id2label.items() if logit[label_id] > 0.
         ]}
         if debug:
-            msg["true_labels"] = [k for k, v in collection.find_one({"_id": _id}).get("label", {}).items() if v] or None
+            msg["true_labels"] = \
+                [k for k, v in collection.find_one({"_id": _id}).get("label", {}).items() if v] or None
 
-        logger.info(
-            msg=str(msg)
-        )
+        logger.info(msg=str(msg))
+
+    if bulk_write:
+        output_collection.bulk_write(requests=requests, ordered=False)
 
 
 class DBTrainer(Trainer):
@@ -137,12 +149,13 @@ class DBTrainer(Trainer):
     Use #db_id to update the categories in the MongoDB cluster
     """
 
-    def __init__(self, model_hash, collection, output_collection, debug, *args, **kwargs):
+    def __init__(self, model_hash, collection, output_collection, debug, bulk_write, *args, **kwargs):
         super(DBTrainer, self).__init__(*args, **kwargs)
         self.collection = collection
         self.output_collection = output_collection
         self.model_hash = model_hash
         self.debug = debug
+        self.bulk_write = bulk_write
 
     def prediction_step(
             self,
@@ -162,6 +175,7 @@ class DBTrainer(Trainer):
             id2label=model.config.id2label,
             collection=self.collection,
             output_collection=self.output_collection,
+            bulk_write=self.bulk_write,
             debug=self.debug,
         )
         return outputs
@@ -207,6 +221,7 @@ if __name__ == '__main__':
         output_collection=output_collection_,
         debug=cli_args.debug,
         model=_model,
+        bulk_write=cli_args.batch_size >= 8,
         model_hash=_model_hash,
         data_collator=data_collator,
         args=training_args
