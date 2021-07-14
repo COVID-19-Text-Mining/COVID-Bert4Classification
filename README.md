@@ -33,19 +33,7 @@ All the test are run on the same PC (No CUDA).
 | ONNX optimized + Int8 Quantized + Dynamic Padding | **45.1** |
 ## Deployment
 ### Deploy with docker
-We use docker to deploy our classification model. As the model has not been made public, we have to build container from `Dockerfile` instead of pulling directly from DockerHub.
-```shell
-# Build docker container (CPU version)
-docker build . -t idocx/multilabel-classifier-cpu \
-  --build-arg DEVICE=cpu
-```
-```shell
-# Build docker container (GPU version)
-docker build . -t idocx/multilabel-classifier-gpu \
-  --build-arg DEVICE=gpu
-```
-
-To use our model to make predictions, run
+We use docker to deploy our classification model. To use our model to make predictions, run
 ```shell
 ## This script will read new documents from MongoDB, 
 ## make predictions and write the predicted categories
@@ -58,7 +46,7 @@ docker run --rm \
   -e COVID_USER=$COVID_USER \
   -e COVID_PASS=$COVID_PASS \
   -e COVID_DB=$COVID_DB \
-  idocx/multilabel-classifier-cpu \
+  idocx/multilabel-classifier:cpu \
   --batch-size 1
 ```
 ```shell
@@ -69,8 +57,21 @@ docker run --rm --gpus all \
   -e COVID_USER=$COVID_USER \
   -e COVID_PASS=$COVID_PASS \
   -e COVID_DB=$COVID_DB \
-  idocx/multilabel-classifier-gpu \
+  idocx/multilabel-classifier:gpu \
   --batch-size 16
+```
+
+#### Build (Optional)
+
+```shell
+# Build docker container (CPU version)
+docker build . -t idocx/multilabel-classifier:cpu \
+  --build-arg DEVICE=cpu
+```
+```shell
+# Build docker container (GPU version)
+docker build . -t idocx/multilabel-classifier:gpu \
+  --build-arg DEVICE=gpu
 ```
 
 ### Deploy directly
