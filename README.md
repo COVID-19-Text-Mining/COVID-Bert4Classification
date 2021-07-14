@@ -49,6 +49,7 @@ docker run --rm \
   idocx/multilabel-classifier:cpu \
   --batch-size 1
 ```
+<!--
 ```shell
 # GPU version
 docker run --rm --gpus all \
@@ -60,15 +61,19 @@ docker run --rm --gpus all \
   idocx/multilabel-classifier:gpu \
   --batch-size 16
 ```
+-->
 
 #### Build (Optional)
 
 ```shell
+# Download model checkpoint
+wget https://www.ocf.berkeley.edu/~yuxingfei/models/model.tar.gz \
+  && tar -zxvf model.tar.gz && rm model.tar.gz
+
 # Build docker container (CPU version)
 docker build . -t idocx/multilabel-classifier:cpu \
   --build-arg DEVICE=cpu
-```
-```shell
+
 # Build docker container (GPU version)
 docker build . -t idocx/multilabel-classifier:gpu \
   --build-arg DEVICE=gpu
@@ -77,6 +82,10 @@ docker build . -t idocx/multilabel-classifier:gpu \
 ### Deploy directly
 ```shell
 pip install -r requirements.txt
+
+# Download model checkpoint
+wget https://www.ocf.berkeley.edu/~yuxingfei/models/model.tar.gz \
+  && tar -zxvf model.tar.gz && rm model.tar.gz
 
 # remember to set DB env variable before runing the script
 export PYTHONPATH=$PYTHONPATH:$(pwd)
