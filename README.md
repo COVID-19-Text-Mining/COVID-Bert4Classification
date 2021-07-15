@@ -49,7 +49,7 @@ docker run --rm \
   idocx/multilabel-classifier:cpu \
   --batch-size 1
 ```
-<!--
+
 ```shell
 # GPU version
 docker run --rm --gpus all \
@@ -61,7 +61,6 @@ docker run --rm --gpus all \
   idocx/multilabel-classifier:gpu \
   --batch-size 16
 ```
--->
 
 #### Build (Optional)
 
